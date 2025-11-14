@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { BookOpen, Calendar, BookText, Dumbbell } from 'lucide-react';
+import { UtensilsCrossed, ClipboardList, BookText, Settings } from 'lucide-react';
 
 export const BottomNav = () => {
   return (
@@ -13,7 +13,7 @@ export const BottomNav = () => {
             }`
           }
         >
-          <BookOpen className="h-5 w-5 mb-1" />
+          <UtensilsCrossed className="h-5 w-5 mb-1" />
           <span className="text-xs">Recipes</span>
         </NavLink>
 
@@ -25,12 +25,12 @@ export const BottomNav = () => {
             }`
           }
         >
-          <Calendar className="h-5 w-5 mb-1" />
-          <span className="text-xs">Meal Plans</span>
+          <ClipboardList className="h-5 w-5 mb-1" />
+          <span className="text-xs">My Plan</span>
         </NavLink>
 
         <NavLink
-          to="/macro-guide"
+          to="/guide"
           className={({ isActive }) =>
             `flex flex-col items-center justify-center flex-1 h-full transition-colors ${
               isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
@@ -38,19 +38,19 @@ export const BottomNav = () => {
           }
         >
           <BookText className="h-5 w-5 mb-1" />
-          <span className="text-xs">Macro Guide</span>
+          <span className="text-xs">Guide</span>
         </NavLink>
 
         <NavLink
-          to="/t-protocol"
+          to="/settings"
           className={({ isActive }) =>
             `flex flex-col items-center justify-center flex-1 h-full transition-colors ${
               isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
             }`
           }
         >
-          <Dumbbell className="h-5 w-5 mb-1" />
-          <span className="text-xs">T-Protocol</span>
+          <Settings className="h-5 w-5 mb-1" />
+          <span className="text-xs">Settings</span>
         </NavLink>
       </div>
     </nav>

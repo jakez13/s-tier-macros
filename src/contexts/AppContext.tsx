@@ -46,10 +46,12 @@ interface AppContextType {
   currentMealPlan: MealPlan | null;
   setCurrentMealPlan: (plan: MealPlan) => void;
   savedMealPlans: SavedMealPlan[];
-  saveMealPlan: (name: string, plan: MealPlan) => void;
+  saveMealPlan: (name: string) => void;
   deleteSavedPlan: (id: string) => void;
   addRecipeToMealPlan: (recipeId: number, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => void;
   removeRecipeFromMealPlan: (recipeId: number, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => void;
+  clearMealPlan: () => void;
+  replaceRecipeInMealPlan: (oldRecipeId: number, newRecipeId: number, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => void;
   favoriteRecipes: number[];
   toggleFavorite: (recipeId: number) => void;
   isOnboarded: boolean;
@@ -126,7 +128,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setCurrentMealPlan(updated);
   };
 
-  const saveMealPlan = (name: string, plan: MealPlan) => {
+  const clearMealPlan = () => {
+    setCurrentMealPlan({
+      breakfast: [],
+      lunch: [],
+      dinner: [],
+      snacks: []
+    });
+  };
+
+  const replaceRecipeInMealPlan = (oldRecipeId: number, newRecipeId: number, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => {
+    const updated = {
+      ...currentMealPlan!,
+      [mealType]: currentMealPlan?.[mealType].map(id => id === oldRecipeId ? newRecipeId : id) || []
+    };
+    setCurrentMealPlan(updated);
+  };
+
+  const saveMealPlan = (name: string) => {
+    if (!currentMealPlan) return;
+    const plan = currentMealPlan;
     const newPlan: SavedMealPlan = {
       id: Date.now().toString(),
       name,
@@ -168,6 +189,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         deleteSavedPlan,
         addRecipeToMealPlan,
         removeRecipeFromMealPlan,
+        clearMealPlan,
+        replaceRecipeInMealPlan,
         favoriteRecipes,
         toggleFavorite,
         isOnboarded,
