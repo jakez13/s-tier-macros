@@ -1,35 +1,26 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { RECIPES, Recipe } from '@/data/recipesData';
+import { PROTEINS, CARBS, FATS } from '@/data/foodsData';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Heart, Search, Clock } from 'lucide-react';
+import { Heart, Search, Clock, X } from 'lucide-react';
 
 export const RecipeLibrary = () => {
   const { foodPreferences, macros, favoriteRecipes, toggleFavorite } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [selectedFood, setSelectedFood] = useState<string | null>(null);
+
+  const allFoods = [...PROTEINS, ...CARBS, ...FATS];
 
   const filteredRecipes = useMemo(() => {
-    if (!foodPreferences) return [];
-
-    const userFoods = [
-      ...foodPreferences.proteins,
-      ...foodPreferences.carbs,
-      ...foodPreferences.fats
-    ];
-
     return RECIPES.filter(recipe => {
-      // Check if recipe only uses user's selected foods
-      const usesOnlyUserFoods = recipe.requiredFoods.every(food => 
-        userFoods.includes(food)
-      );
-
       // Search filter
       const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.ingredients.some(ing => ing.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -41,9 +32,14 @@ export const RecipeLibrary = () => {
       if (activeTab === 'dinner') matchesTab = recipe.mealType === 'dinner';
       if (activeTab === 'favorites') matchesTab = favoriteRecipes.includes(recipe.id);
 
-      return usesOnlyUserFoods && matchesSearch && matchesTab;
+      // Favorite food filter
+      const matchesFavoriteFood = selectedFood 
+        ? recipe.requiredFoods.includes(selectedFood)
+        : true;
+
+      return matchesSearch && matchesTab && matchesFavoriteFood;
     });
-  }, [foodPreferences, searchQuery, activeTab, favoriteRecipes]);
+  }, [searchQuery, activeTab, favoriteRecipes, selectedFood]);
 
   const getMealTypeBadge = (type: string) => {
     const colors = {
@@ -54,10 +50,6 @@ export const RecipeLibrary = () => {
     };
     return colors[type as keyof typeof colors] || 'bg-gray-500';
   };
-
-  if (!foodPreferences) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -88,6 +80,30 @@ export const RecipeLibrary = () => {
         )}
 
         <h1 className="text-3xl font-bold text-foreground mb-6">Your Recipe Library</h1>
+
+        {/* Favorite Food Filter */}
+        <div className="mb-4">
+          <p className="text-sm text-muted-foreground mb-2">Filter by favorite food:</p>
+          <div className="flex flex-wrap gap-2">
+            {allFoods.slice(0, 10).map(food => (
+              <Button
+                key={food}
+                variant={selectedFood === food ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedFood(selectedFood === food ? null : food)}
+                className="text-xs"
+              >
+                {food}
+                {selectedFood === food && <X className="ml-1 h-3 w-3" />}
+              </Button>
+            ))}
+          </div>
+          {selectedFood && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Showing recipes with {selectedFood}
+            </p>
+          )}
+        </div>
 
         {/* Search */}
         <div className="relative mb-6">
