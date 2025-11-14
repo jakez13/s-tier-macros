@@ -77,7 +77,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const [currentMealPlan, setCurrentMealPlanState] = useState<MealPlan | null>(() => {
     const saved = localStorage.getItem('currentMealPlan');
-    return saved ? JSON.parse(saved) : { breakfast: [], lunch: [], dinner: [], snacks: [] };
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Validate and migrate old data structure
+        return {
+          breakfast: Array.isArray(parsed.breakfast) ? parsed.breakfast : [],
+          lunch: Array.isArray(parsed.lunch) ? parsed.lunch : [],
+          dinner: Array.isArray(parsed.dinner) ? parsed.dinner : [],
+          snacks: Array.isArray(parsed.snacks) ? parsed.snacks : []
+        };
+      } catch (e) {
+        // If parsing fails, return empty plan
+        return { breakfast: [], lunch: [], dinner: [], snacks: [] };
+      }
+    }
+    return { breakfast: [], lunch: [], dinner: [], snacks: [] };
   });
 
   const [savedMealPlans, setSavedMealPlans] = useState<SavedMealPlan[]>(() => {
