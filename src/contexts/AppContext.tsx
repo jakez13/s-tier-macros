@@ -22,20 +22,28 @@ export interface FoodPreferences {
   fats: string[];
 }
 
-export interface MealLog {
-  id: string;
-  name: string;
-  time: string;
-  protein: number;
-  carbs: number;
-  fats: number;
-  calories: number;
+export interface DailyMeals {
+  breakfast: number; // Recipe ID
+  lunch: number;
+  dinner: number;
+  snack: number;
 }
 
-export interface DailyLog {
-  date: string;
-  meals: MealLog[];
-  waterGlasses: number;
+export interface WeeklyMealPlan {
+  monday: DailyMeals;
+  tuesday: DailyMeals;
+  wednesday: DailyMeals;
+  thursday: DailyMeals;
+  friday: DailyMeals;
+  saturday: DailyMeals;
+  sunday: DailyMeals;
+}
+
+export interface SavedMealPlan {
+  id: string;
+  name: string;
+  week: WeeklyMealPlan;
+  createdAt: string;
 }
 
 interface AppContextType {
@@ -45,11 +53,13 @@ interface AppContextType {
   setMacros: (macros: Macros) => void;
   foodPreferences: FoodPreferences | null;
   setFoodPreferences: (preferences: FoodPreferences) => void;
-  dailyLogs: DailyLog[];
-  addMealToToday: (meal: Omit<MealLog, 'id'>) => void;
-  deleteMeal: (mealId: string) => void;
-  addWaterGlass: () => void;
-  getTodayLog: () => DailyLog;
+  currentMealPlan: WeeklyMealPlan | null;
+  setCurrentMealPlan: (plan: WeeklyMealPlan) => void;
+  savedMealPlans: SavedMealPlan[];
+  saveMealPlan: (name: string, plan: WeeklyMealPlan) => void;
+  deleteSavedPlan: (id: string) => void;
+  favoriteRecipes: number[];
+  toggleFavorite: (recipeId: number) => void;
   isOnboarded: boolean;
 }
 
@@ -71,8 +81,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
-  const [dailyLogs, setDailyLogs] = useState<DailyLog[]>(() => {
-    const saved = localStorage.getItem('dailyLogs');
+  const [currentMealPlan, setCurrentMealPlanState] = useState<WeeklyMealPlan | null>(() => {
+    const saved = localStorage.getItem('currentMealPlan');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const [savedMealPlans, setSavedMealPlans] = useState<SavedMealPlan[]>(() => {
+    const saved = localStorage.getItem('savedMealPlans');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [favoriteRecipes, setFavoriteRecipes] = useState<number[]>(() => {
+    const saved = localStorage.getItem('favoriteRecipes');
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -177,11 +197,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setMacros,
         foodPreferences,
         setFoodPreferences,
-        dailyLogs,
-        addMealToToday,
-        deleteMeal,
-        addWaterGlass,
-        getTodayLog,
+        currentMealPlan,
+        setCurrentMealPlan,
+        savedMealPlans,
+        saveMealPlan,
+        deleteSavedPlan,
+        favoriteRecipes,
+        toggleFavorite,
         isOnboarded,
       }}
     >
