@@ -22,7 +22,26 @@ export const MacroCalculator = () => {
 
   const calculateMacros = () => {
     const w = parseFloat(weight);
-    const maintenance = w * 15;
+    const hFeet = parseInt(heightFeet);
+    const hInches = parseInt(heightInches);
+    const a = parseInt(age);
+    
+    // Convert weight to kg and height to cm
+    const weightKg = w * 0.453592;
+    const heightCm = (hFeet * 12 + hInches) * 2.54;
+    
+    // Mifflin-St Jeor Equation (using male formula as default)
+    const bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * a) + 5;
+    
+    // Activity level multipliers
+    const activityMultipliers = {
+      minimal: 1.2,   // Sedentary
+      light: 1.375,   // Light exercise 1-3 days/week
+      moderate: 1.55, // Moderate exercise 3-5 days/week
+      active: 1.725   // Heavy exercise 6-7 days/week
+    };
+    
+    const maintenance = bmr * activityMultipliers[activityLevel];
     
     let targetCalories = maintenance;
     if (goal === 'bulk') targetCalories = maintenance + calorieAdjustment;
