@@ -28,7 +28,7 @@ export const proteinData = {
       why: "High in saturated fat for hormone production. Builds muscle and boosts testosterone.",
     },
     {
-      name: "Ground Beef 90/10",
+      name: "Ground Beef (10% Fat)",
       serving: "8oz",
       protein: 50,
       fat: 22,
@@ -37,7 +37,7 @@ export const proteinData = {
       why: "Lean and versatile, perfect for daily meals. High protein with moderate fat.",
     },
     {
-      name: "Ground Beef 80/20",
+      name: "Ground Beef (20% Fat)",
       serving: "8oz",
       protein: 46,
       fat: 40,
