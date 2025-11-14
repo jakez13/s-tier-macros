@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Heart, Search, Clock } from 'lucide-react';
+import { Heart, Search, Clock, Plus } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 export const RecipeLibrary = () => {
-  const { macros, favoriteRecipes, toggleFavorite } = useApp();
+  const { macros, favoriteRecipes, toggleFavorite, addRecipeToMealPlan } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [activeTab, setActiveTab] = useState<string>('all');
@@ -41,6 +42,21 @@ export const RecipeLibrary = () => {
       snack: 'bg-green-500'
     };
     return colors[type as keyof typeof colors] || 'bg-gray-500';
+  };
+
+  const handleAddToMealPlan = (recipe: Recipe) => {
+    const mealTypeMap: { [key: string]: 'breakfast' | 'lunch' | 'dinner' | 'snacks' } = {
+      'breakfast': 'breakfast',
+      'lunch': 'lunch',
+      'dinner': 'dinner',
+      'snack': 'snacks'
+    };
+    const mealType = mealTypeMap[recipe.mealType];
+    addRecipeToMealPlan(recipe.id, mealType);
+    toast({
+      title: "Added to meal plan!",
+      description: `${recipe.name} has been added to your ${mealType}.`
+    });
   };
 
   return (
@@ -161,12 +177,22 @@ export const RecipeLibrary = () => {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={() => setSelectedRecipe(recipe)}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  View Recipe
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => handleAddToMealPlan(recipe)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add to Plan
+                  </Button>
+                  <Button 
+                    onClick={() => setSelectedRecipe(recipe)}
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    View Recipe
+                  </Button>
+                </div>
               </Card>
             ))}
           </div>

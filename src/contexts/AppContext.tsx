@@ -22,27 +22,17 @@ export interface FoodPreferences {
   fats: string[];
 }
 
-export interface DailyMeals {
-  breakfast: number; // Recipe ID
-  lunch: number;
-  dinner: number;
-  snack: number;
-}
-
-export interface WeeklyMealPlan {
-  monday: DailyMeals;
-  tuesday: DailyMeals;
-  wednesday: DailyMeals;
-  thursday: DailyMeals;
-  friday: DailyMeals;
-  saturday: DailyMeals;
-  sunday: DailyMeals;
+export interface MealPlan {
+  breakfast: number[]; // Array of Recipe IDs
+  lunch: number[];
+  dinner: number[];
+  snacks: number[];
 }
 
 export interface SavedMealPlan {
   id: string;
   name: string;
-  week: WeeklyMealPlan;
+  plan: MealPlan;
   createdAt: string;
 }
 
@@ -53,11 +43,13 @@ interface AppContextType {
   setMacros: (macros: Macros) => void;
   foodPreferences: FoodPreferences | null;
   setFoodPreferences: (preferences: FoodPreferences) => void;
-  currentMealPlan: WeeklyMealPlan | null;
-  setCurrentMealPlan: (plan: WeeklyMealPlan) => void;
+  currentMealPlan: MealPlan | null;
+  setCurrentMealPlan: (plan: MealPlan) => void;
   savedMealPlans: SavedMealPlan[];
-  saveMealPlan: (name: string, plan: WeeklyMealPlan) => void;
+  saveMealPlan: (name: string, plan: MealPlan) => void;
   deleteSavedPlan: (id: string) => void;
+  addRecipeToMealPlan: (recipeId: number, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => void;
+  removeRecipeFromMealPlan: (recipeId: number, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => void;
   favoriteRecipes: number[];
   toggleFavorite: (recipeId: number) => void;
   isOnboarded: boolean;
@@ -81,9 +73,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
-  const [currentMealPlan, setCurrentMealPlanState] = useState<WeeklyMealPlan | null>(() => {
+  const [currentMealPlan, setCurrentMealPlanState] = useState<MealPlan | null>(() => {
     const saved = localStorage.getItem('currentMealPlan');
-    return saved ? JSON.parse(saved) : null;
+    return saved ? JSON.parse(saved) : { breakfast: [], lunch: [], dinner: [], snacks: [] };
   });
 
   const [savedMealPlans, setSavedMealPlans] = useState<SavedMealPlan[]>(() => {
@@ -113,16 +105,32 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('foodPreferences', JSON.stringify(preferences));
   };
 
-  const setCurrentMealPlan = (plan: WeeklyMealPlan) => {
+  const setCurrentMealPlan = (plan: MealPlan) => {
     setCurrentMealPlanState(plan);
     localStorage.setItem('currentMealPlan', JSON.stringify(plan));
   };
 
-  const saveMealPlan = (name: string, plan: WeeklyMealPlan) => {
+  const addRecipeToMealPlan = (recipeId: number, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => {
+    const updated = {
+      ...currentMealPlan!,
+      [mealType]: [...(currentMealPlan?.[mealType] || []), recipeId]
+    };
+    setCurrentMealPlan(updated);
+  };
+
+  const removeRecipeFromMealPlan = (recipeId: number, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => {
+    const updated = {
+      ...currentMealPlan!,
+      [mealType]: currentMealPlan?.[mealType].filter(id => id !== recipeId) || []
+    };
+    setCurrentMealPlan(updated);
+  };
+
+  const saveMealPlan = (name: string, plan: MealPlan) => {
     const newPlan: SavedMealPlan = {
       id: Date.now().toString(),
       name,
-      week: plan,
+      plan: plan,
       createdAt: new Date().toISOString()
     };
     const updated = [...savedMealPlans, newPlan];
@@ -158,6 +166,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         savedMealPlans,
         saveMealPlan,
         deleteSavedPlan,
+        addRecipeToMealPlan,
+        removeRecipeFromMealPlan,
         favoriteRecipes,
         toggleFavorite,
         isOnboarded,
