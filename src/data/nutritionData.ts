@@ -28,15 +28,6 @@ export const proteinData = {
       why: "High in saturated fat for hormone production. Builds muscle and boosts testosterone.",
     },
     {
-      name: "Ground Beef 80/20",
-      serving: "8oz",
-      protein: 46,
-      fat: 40,
-      carbs: 0,
-      calories: 560,
-      why: "Affordable, versatile, perfect fat-to-protein ratio. Use daily.",
-    },
-    {
       name: "Salmon",
       serving: "6oz",
       protein: 40,
