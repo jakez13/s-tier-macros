@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppProvider, useApp } from "./contexts/AppContext";
 import { MacroCalculator } from "./pages/MacroCalculator";
-import { FoodPreferences } from "./pages/FoodPreferences";
 import { RecipeLibrary } from "./pages/RecipeLibrary";
 import { MealPlans } from "./pages/MealPlans";
 import { MacroGuide } from "./pages/MacroGuide";
@@ -21,7 +20,6 @@ const AppRoutes = () => {
     <>
       <Routes>
         <Route path="/macro-calculator" element={<MacroCalculator />} />
-        <Route path="/food-preferences" element={<FoodPreferences />} />
         <Route
           path="/recipes"
           element={isOnboarded ? <RecipeLibrary /> : <Navigate to="/macro-calculator" replace />}
