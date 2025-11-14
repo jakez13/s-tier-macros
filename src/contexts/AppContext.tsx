@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface UserProfile {
   weight: number;
@@ -113,79 +113,35 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('foodPreferences', JSON.stringify(preferences));
   };
 
-  useEffect(() => {
-    localStorage.setItem('dailyLogs', JSON.stringify(dailyLogs));
-  }, [dailyLogs]);
-
-  const getTodayLog = (): DailyLog => {
-    const today = new Date().toISOString().split('T')[0];
-    const todayLog = dailyLogs.find(log => log.date === today);
-    
-    if (!todayLog) {
-      const newLog: DailyLog = { date: today, meals: [], waterGlasses: 0 };
-      setDailyLogs([...dailyLogs, newLog]);
-      return newLog;
-    }
-    
-    return todayLog;
+  const setCurrentMealPlan = (plan: WeeklyMealPlan) => {
+    setCurrentMealPlanState(plan);
+    localStorage.setItem('currentMealPlan', JSON.stringify(plan));
   };
 
-  const addMealToToday = (meal: Omit<MealLog, 'id'>) => {
-    const today = new Date().toISOString().split('T')[0];
-    const mealWithId: MealLog = { ...meal, id: Date.now().toString() };
-    
-    setDailyLogs(logs => {
-      const todayIndex = logs.findIndex(log => log.date === today);
-      
-      if (todayIndex >= 0) {
-        const updated = [...logs];
-        updated[todayIndex] = {
-          ...updated[todayIndex],
-          meals: [...updated[todayIndex].meals, mealWithId]
-        };
-        return updated;
-      } else {
-        return [...logs, { date: today, meals: [mealWithId], waterGlasses: 0 }];
-      }
-    });
+  const saveMealPlan = (name: string, plan: WeeklyMealPlan) => {
+    const newPlan: SavedMealPlan = {
+      id: Date.now().toString(),
+      name,
+      week: plan,
+      createdAt: new Date().toISOString()
+    };
+    const updated = [...savedMealPlans, newPlan];
+    setSavedMealPlans(updated);
+    localStorage.setItem('savedMealPlans', JSON.stringify(updated));
   };
 
-  const deleteMeal = (mealId: string) => {
-    const today = new Date().toISOString().split('T')[0];
-    
-    setDailyLogs(logs => {
-      const todayIndex = logs.findIndex(log => log.date === today);
-      
-      if (todayIndex >= 0) {
-        const updated = [...logs];
-        updated[todayIndex] = {
-          ...updated[todayIndex],
-          meals: updated[todayIndex].meals.filter(m => m.id !== mealId)
-        };
-        return updated;
-      }
-      
-      return logs;
-    });
+  const deleteSavedPlan = (id: string) => {
+    const updated = savedMealPlans.filter(p => p.id !== id);
+    setSavedMealPlans(updated);
+    localStorage.setItem('savedMealPlans', JSON.stringify(updated));
   };
 
-  const addWaterGlass = () => {
-    const today = new Date().toISOString().split('T')[0];
-    
-    setDailyLogs(logs => {
-      const todayIndex = logs.findIndex(log => log.date === today);
-      
-      if (todayIndex >= 0) {
-        const updated = [...logs];
-        updated[todayIndex] = {
-          ...updated[todayIndex],
-          waterGlasses: updated[todayIndex].waterGlasses + 1
-        };
-        return updated;
-      } else {
-        return [...logs, { date: today, meals: [], waterGlasses: 1 }];
-      }
-    });
+  const toggleFavorite = (recipeId: number) => {
+    const updated = favoriteRecipes.includes(recipeId)
+      ? favoriteRecipes.filter(id => id !== recipeId)
+      : [...favoriteRecipes, recipeId];
+    setFavoriteRecipes(updated);
+    localStorage.setItem('favoriteRecipes', JSON.stringify(updated));
   };
 
   return (
