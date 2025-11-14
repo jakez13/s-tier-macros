@@ -15,7 +15,7 @@ export const MacroCalculator = () => {
   const [heightFeet, setHeightFeet] = useState('');
   const [heightInches, setHeightInches] = useState('');
   const [age, setAge] = useState('');
-  const [activityLevel, setActivityLevel] = useState<'sedentary' | 'moderate' | 'active'>('moderate');
+  const [activityLevel, setActivityLevel] = useState<'minimal' | 'light' | 'moderate' | 'active'>('moderate');
   const [goal, setGoal] = useState<'bulk' | 'maintain' | 'cut'>('maintain');
 
   const calculateMacros = () => {
@@ -124,7 +124,8 @@ export const MacroCalculator = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-background border-border z-50">
-                <SelectItem value="sedentary">Sedentary (little to no exercise)</SelectItem>
+                <SelectItem value="minimal">Minimal Activity (little to no exercise)</SelectItem>
+                <SelectItem value="light">Lightly Active (1-3 days/week training)</SelectItem>
                 <SelectItem value="moderate">Moderately Active (3-5 days/week training)</SelectItem>
                 <SelectItem value="active">Very Active (6-7 days/week training)</SelectItem>
               </SelectContent>

@@ -5,7 +5,7 @@ export interface UserProfile {
   heightFeet: number;
   heightInches: number;
   age: number;
-  activityLevel: 'sedentary' | 'moderate' | 'active';
+  activityLevel: 'minimal' | 'light' | 'moderate' | 'active';
   goal: 'bulk' | 'maintain' | 'cut';
 }
 
