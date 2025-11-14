@@ -3,10 +3,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 
 export const TProtocol = () => {
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="max-w-4xl mx-auto p-4">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Testosterone Optimization</h1>
-        <p className="text-muted-foreground mb-6">Complete guide to maximizing natural testosterone through nutrition and lifestyle</p>
+    <div>
+      <h1 className="text-3xl font-bold text-foreground mb-2">Testosterone Optimization</h1>
+      <p className="text-muted-foreground mb-6">Complete guide to maximizing natural testosterone through nutrition and lifestyle</p>
 
         <Accordion type="single" collapsible className="space-y-4">
           {/* The Science */}
@@ -488,7 +487,6 @@ export const TProtocol = () => {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-      </div>
     </div>
   );
 };

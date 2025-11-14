@@ -6,13 +6,10 @@ export const MacroGuide = () => {
   const { macros } = useApp();
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="max-w-4xl mx-auto p-4">
-        <h1 className="text-3xl font-bold text-foreground mb-6">Complete Macro Guide</h1>
-
-        {/* What Are Macros */}
-        <Card className="p-6 mb-6 bg-secondary/50 border-border">
-          <h2 className="text-2xl font-bold text-foreground mb-4">What Are Macros?</h2>
+    <div>
+      {/* What Are Macros */}
+      <Card className="p-6 mb-6 bg-secondary/50 border-border">
+        <h2 className="text-2xl font-bold text-foreground mb-4">What Are Macros?</h2>
           
           <div className="space-y-4">
             <div>
@@ -298,7 +295,6 @@ export const MacroGuide = () => {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-      </div>
     </div>
   );
 };

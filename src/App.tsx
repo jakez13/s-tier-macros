@@ -7,8 +7,8 @@ import { AppProvider, useApp } from "./contexts/AppContext";
 import { MacroCalculator } from "./pages/MacroCalculator";
 import { RecipeLibrary } from "./pages/RecipeLibrary";
 import { MealPlans } from "./pages/MealPlans";
-import { MacroGuide } from "./pages/MacroGuide";
-import { TProtocol } from "./pages/TProtocol";
+import { Guide } from "./pages/Guide";
+import { Settings } from "./pages/Settings";
 import { BottomNav } from "./components/BottomNav";
 
 const queryClient = new QueryClient();
@@ -29,12 +29,12 @@ const AppRoutes = () => {
           element={isOnboarded ? <MealPlans /> : <Navigate to="/macro-calculator" replace />}
         />
         <Route
-          path="/macro-guide"
-          element={isOnboarded ? <MacroGuide /> : <Navigate to="/macro-calculator" replace />}
+          path="/guide"
+          element={isOnboarded ? <Guide /> : <Navigate to="/macro-calculator" replace />}
         />
         <Route
-          path="/t-protocol"
-          element={isOnboarded ? <TProtocol /> : <Navigate to="/macro-calculator" replace />}
+          path="/settings"
+          element={isOnboarded ? <Settings /> : <Navigate to="/macro-calculator" replace />}
         />
         <Route path="/" element={<Navigate to={isOnboarded ? "/recipes" : "/macro-calculator"} replace />} />
       </Routes>
