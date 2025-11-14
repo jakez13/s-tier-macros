@@ -38,10 +38,10 @@ export const MealPlans = () => {
     if (!currentMealPlan) return { protein: 0, carbs: 0, fats: 0, calories: 0 };
 
     const allRecipeIds = [
-      ...currentMealPlan.breakfast,
-      ...currentMealPlan.lunch,
-      ...currentMealPlan.dinner,
-      ...currentMealPlan.snacks
+      ...(Array.isArray(currentMealPlan.breakfast) ? currentMealPlan.breakfast : []),
+      ...(Array.isArray(currentMealPlan.lunch) ? currentMealPlan.lunch : []),
+      ...(Array.isArray(currentMealPlan.dinner) ? currentMealPlan.dinner : []),
+      ...(Array.isArray(currentMealPlan.snacks) ? currentMealPlan.snacks : [])
     ];
 
     return allRecipeIds.reduce((totals, id) => {
