@@ -1,23 +1,19 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { RECIPES, Recipe } from '@/data/recipesData';
-import { PROTEINS, CARBS, FATS } from '@/data/foodsData';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Heart, Search, Clock, X } from 'lucide-react';
+import { Heart, Search, Clock } from 'lucide-react';
 
 export const RecipeLibrary = () => {
-  const { foodPreferences, macros, favoriteRecipes, toggleFavorite } = useApp();
+  const { macros, favoriteRecipes, toggleFavorite } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [activeTab, setActiveTab] = useState<string>('all');
-  const [selectedFood, setSelectedFood] = useState<string | null>(null);
-
-  const allFoods = [...PROTEINS, ...CARBS, ...FATS];
 
   const filteredRecipes = useMemo(() => {
     return RECIPES.filter(recipe => {
@@ -30,16 +26,12 @@ export const RecipeLibrary = () => {
       if (activeTab === 'breakfast') matchesTab = recipe.mealType === 'breakfast';
       if (activeTab === 'lunch') matchesTab = recipe.mealType === 'lunch';
       if (activeTab === 'dinner') matchesTab = recipe.mealType === 'dinner';
-      if (activeTab === 'favorites') matchesTab = favoriteRecipes.includes(recipe.id);
+      if (activeTab === 'snacks') matchesTab = recipe.mealType === 'snack';
+      
 
-      // Favorite food filter
-      const matchesFavoriteFood = selectedFood 
-        ? recipe.requiredFoods.includes(selectedFood)
-        : true;
-
-      return matchesSearch && matchesTab && matchesFavoriteFood;
+      return matchesSearch && matchesTab;
     });
-  }, [searchQuery, activeTab, favoriteRecipes, selectedFood]);
+  }, [searchQuery, activeTab, favoriteRecipes]);
 
   const getMealTypeBadge = (type: string) => {
     const colors = {
@@ -79,31 +71,7 @@ export const RecipeLibrary = () => {
           </Card>
         )}
 
-        <h1 className="text-3xl font-bold text-foreground mb-6">Your Recipe Library</h1>
-
-        {/* Favorite Food Filter */}
-        <div className="mb-4">
-          <p className="text-sm text-muted-foreground mb-2">Filter by favorite food:</p>
-          <div className="flex flex-wrap gap-2">
-            {allFoods.slice(0, 10).map(food => (
-              <Button
-                key={food}
-                variant={selectedFood === food ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedFood(selectedFood === food ? null : food)}
-                className="text-xs"
-              >
-                {food}
-                {selectedFood === food && <X className="ml-1 h-3 w-3" />}
-              </Button>
-            ))}
-          </div>
-          {selectedFood && (
-            <p className="text-xs text-muted-foreground mt-2">
-              Showing recipes with {selectedFood}
-            </p>
-          )}
-        </div>
+        <h1 className="text-3xl font-bold text-foreground mb-6">Recipe Library</h1>
 
         {/* Search */}
         <div className="relative mb-6">
@@ -124,7 +92,7 @@ export const RecipeLibrary = () => {
             <TabsTrigger value="breakfast">Breakfast</TabsTrigger>
             <TabsTrigger value="lunch">Lunch</TabsTrigger>
             <TabsTrigger value="dinner">Dinner</TabsTrigger>
-            <TabsTrigger value="favorites">Favorites</TabsTrigger>
+            <TabsTrigger value="snacks">Snacks</TabsTrigger>
           </TabsList>
         </Tabs>
 

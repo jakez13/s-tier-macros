@@ -96,7 +96,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const isOnboarded = !!userProfile && !!macros && !!foodPreferences;
+  const isOnboarded = !!userProfile && !!macros;
 
   const setUserProfile = (profile: UserProfile) => {
     setUserProfileState(profile);
