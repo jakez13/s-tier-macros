@@ -43,7 +43,7 @@ interface AppContextType {
   setMacros: (macros: Macros) => void;
   foodPreferences: FoodPreferences | null;
   setFoodPreferences: (preferences: FoodPreferences) => void;
-  currentMealPlan: MealPlan | null;
+  currentMealPlan: MealPlan;
   setCurrentMealPlan: (plan: MealPlan) => void;
   savedMealPlans: SavedMealPlan[];
   saveMealPlan: (name: string) => void;
@@ -61,24 +61,36 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [userProfile, setUserProfileState] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem('userProfile');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('userProfile');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
 
   const [macros, setMacrosState] = useState<Macros | null>(() => {
-    const saved = localStorage.getItem('macros');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('macros');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
 
   const [foodPreferences, setFoodPreferencesState] = useState<FoodPreferences | null>(() => {
-    const saved = localStorage.getItem('foodPreferences');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('foodPreferences');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
 
-  const [currentMealPlan, setCurrentMealPlanState] = useState<MealPlan | null>(() => {
-    const saved = localStorage.getItem('currentMealPlan');
-    if (saved) {
-      try {
+  const [currentMealPlan, setCurrentMealPlanState] = useState<MealPlan>(() => {
+    try {
+      const saved = localStorage.getItem('currentMealPlan');
+      if (saved) {
         const parsed = JSON.parse(saved);
         // Validate and migrate old data structure
         return {
@@ -87,22 +99,29 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           dinner: Array.isArray(parsed.dinner) ? parsed.dinner : [],
           snacks: Array.isArray(parsed.snacks) ? parsed.snacks : []
         };
-      } catch (e) {
-        // If parsing fails, return empty plan
-        return { breakfast: [], lunch: [], dinner: [], snacks: [] };
       }
+    } catch (e) {
+      console.error('Failed to parse meal plan:', e);
     }
     return { breakfast: [], lunch: [], dinner: [], snacks: [] };
   });
 
   const [savedMealPlans, setSavedMealPlans] = useState<SavedMealPlan[]>(() => {
-    const saved = localStorage.getItem('savedMealPlans');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('savedMealPlans');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   const [favoriteRecipes, setFavoriteRecipes] = useState<number[]>(() => {
-    const saved = localStorage.getItem('favoriteRecipes');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('favoriteRecipes');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   const isOnboarded = !!userProfile && !!macros;
@@ -129,16 +148,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addRecipeToMealPlan = (recipeId: number, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => {
     const updated = {
-      ...currentMealPlan!,
-      [mealType]: [...(currentMealPlan?.[mealType] || []), recipeId]
+      ...currentMealPlan,
+      [mealType]: [...currentMealPlan[mealType], recipeId]
     };
     setCurrentMealPlan(updated);
   };
 
   const removeRecipeFromMealPlan = (recipeId: number, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => {
     const updated = {
-      ...currentMealPlan!,
-      [mealType]: currentMealPlan?.[mealType].filter(id => id !== recipeId) || []
+      ...currentMealPlan,
+      [mealType]: currentMealPlan[mealType].filter(id => id !== recipeId)
     };
     setCurrentMealPlan(updated);
   };
@@ -154,14 +173,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const replaceRecipeInMealPlan = (oldRecipeId: number, newRecipeId: number, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => {
     const updated = {
-      ...currentMealPlan!,
-      [mealType]: currentMealPlan?.[mealType].map(id => id === oldRecipeId ? newRecipeId : id) || []
+      ...currentMealPlan,
+      [mealType]: currentMealPlan[mealType].map(id => id === oldRecipeId ? newRecipeId : id)
     };
     setCurrentMealPlan(updated);
   };
 
   const saveMealPlan = (name: string) => {
-    if (!currentMealPlan) return;
     const plan = currentMealPlan;
     const newPlan: SavedMealPlan = {
       id: Date.now().toString(),

@@ -35,13 +35,11 @@ export const MealPlans = () => {
   };
 
   const calculateTotals = () => {
-    if (!currentMealPlan) return { protein: 0, carbs: 0, fats: 0, calories: 0 };
-
     const allRecipeIds = [
-      ...(Array.isArray(currentMealPlan.breakfast) ? currentMealPlan.breakfast : []),
-      ...(Array.isArray(currentMealPlan.lunch) ? currentMealPlan.lunch : []),
-      ...(Array.isArray(currentMealPlan.dinner) ? currentMealPlan.dinner : []),
-      ...(Array.isArray(currentMealPlan.snacks) ? currentMealPlan.snacks : [])
+      ...currentMealPlan.breakfast,
+      ...currentMealPlan.lunch,
+      ...currentMealPlan.dinner,
+      ...currentMealPlan.snacks
     ];
 
     return allRecipeIds.reduce((totals, id) => {
@@ -168,7 +166,7 @@ export const MealPlans = () => {
     title: string; 
     mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks' 
   }) => {
-    const recipeIds = currentMealPlan?.[mealType] || [];
+    const recipeIds = currentMealPlan[mealType];
     
     return (
       <div className="mb-6">
@@ -251,12 +249,11 @@ export const MealPlans = () => {
     );
   };
 
-  const hasAnyMeals = currentMealPlan && (
+  const hasAnyMeals = 
     currentMealPlan.breakfast.length > 0 || 
     currentMealPlan.lunch.length > 0 || 
     currentMealPlan.dinner.length > 0 || 
-    currentMealPlan.snacks.length > 0
-  );
+    currentMealPlan.snacks.length > 0;
 
   return (
     <div className="min-h-screen bg-background pb-24">
