@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
+import { Slider } from '@/components/ui/slider';
 
 export const MacroCalculator = () => {
   const navigate = useNavigate();
@@ -17,14 +18,15 @@ export const MacroCalculator = () => {
   const [age, setAge] = useState('');
   const [activityLevel, setActivityLevel] = useState<'minimal' | 'light' | 'moderate' | 'active'>('moderate');
   const [goal, setGoal] = useState<'bulk' | 'maintain' | 'cut'>('maintain');
+  const [calorieAdjustment, setCalorieAdjustment] = useState(200);
 
   const calculateMacros = () => {
     const w = parseFloat(weight);
     const maintenance = w * 15;
     
     let targetCalories = maintenance;
-    if (goal === 'bulk') targetCalories = maintenance + 400;
-    if (goal === 'cut') targetCalories = maintenance - 400;
+    if (goal === 'bulk') targetCalories = maintenance + calorieAdjustment;
+    if (goal === 'cut') targetCalories = maintenance - calorieAdjustment;
     
     const protein = Math.round(w * 1);
     const fats = Math.round(goal === 'cut' ? w * 0.35 : w * 0.45);
@@ -32,6 +34,7 @@ export const MacroCalculator = () => {
     const carbs = Math.round(remainingCalories / 4);
     
     return {
+      maintenance: Math.round(maintenance),
       calories: Math.round(targetCalories),
       protein,
       carbs,
@@ -145,6 +148,38 @@ export const MacroCalculator = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {goal !== 'maintain' && (
+            <div>
+              <Label>
+                {goal === 'bulk' ? 'Calorie Surplus' : 'Calorie Deficit'}: {calorieAdjustment} cal/day
+              </Label>
+              <Slider
+                value={[calorieAdjustment]}
+                onValueChange={(value) => setCalorieAdjustment(value[0])}
+                min={200}
+                max={500}
+                step={50}
+                className="mt-2"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>200</span>
+                <span>500</span>
+              </div>
+            </div>
+          )}
+
+          {weight && (
+            <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-2">Calorie Maintenance Estimate:</p>
+              <p className="text-2xl font-bold text-primary">{Math.round(parseFloat(weight) * 15)} cal/day</p>
+              {goal !== 'maintain' && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Target: {Math.round(parseFloat(weight) * 15 + (goal === 'bulk' ? calorieAdjustment : -calorieAdjustment))} cal/day
+                </p>
+              )}
+            </div>
+          )}
 
           <Button 
             type="submit" 
