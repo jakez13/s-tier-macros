@@ -32,17 +32,8 @@ export const MealPlans = () => {
   const [activeTab, setActiveTab] = useState('current');
 
   const getFilteredRecipes = () => {
-    if (!foodPreferences) return [];
-    
-    const userFoods = [
-      ...foodPreferences.proteins,
-      ...foodPreferences.carbs,
-      ...foodPreferences.fats
-    ];
-
-    return RECIPES.filter(recipe =>
-      recipe.requiredFoods.every(food => userFoods.includes(food))
-    );
+    // Return all recipes for meal plan generation
+    return RECIPES;
   };
 
   const generateMealPlan = () => {
