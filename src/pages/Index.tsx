@@ -7,23 +7,40 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="bg-gradient-hero border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 py-12 lg:py-20 text-center">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <Dumbbell className="text-primary" size={48} />
-            <h1 className="text-4xl lg:text-6xl font-black text-foreground tracking-tight uppercase">
-              Macronutrients
+      <div className="bg-gradient-hero border-b border-primary/10">
+        <div className="max-w-6xl mx-auto px-4 py-16 lg:py-24">
+          <div className="text-center space-y-6">
+            <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-lg mb-2">
+              <Dumbbell className="text-primary" size={32} strokeWidth={2.5} />
+            </div>
+            
+            <h1 className="text-5xl lg:text-7xl font-black text-foreground tracking-tighter">
+              MACRONUTRIENTS
             </h1>
-          </div>
-          <p className="text-xl lg:text-2xl text-steel max-w-3xl mx-auto leading-relaxed">
-            The Ultimate Guide to Building Muscle & Maximizing Testosterone
-          </p>
-          <div className="mt-8 flex items-center justify-center gap-2">
-            <div className="h-1 w-16 bg-s-tier rounded-full"></div>
-            <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
-              S-Tier & A-Tier Only
-            </span>
-            <div className="h-1 w-16 bg-a-tier rounded-full"></div>
+            
+            <p className="text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light">
+              The Ultimate Guide to Building Muscle & Maximizing Testosterone
+            </p>
+            
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-s-tier shadow-glow"></div>
+                <span className="text-sm font-semibold text-s-tier uppercase tracking-wide">
+                  S-Tier
+                </span>
+              </div>
+              <div className="h-4 w-px bg-border"></div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-a-tier"></div>
+                <span className="text-sm font-semibold text-a-tier uppercase tracking-wide">
+                  A-Tier
+                </span>
+              </div>
+              <div className="h-4 w-px bg-border"></div>
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Only
+              </span>
+            </div>
           </div>
         </div>
       </div>
