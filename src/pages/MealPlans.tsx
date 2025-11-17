@@ -383,6 +383,100 @@ export const MealPlans = () => {
     );
   };
 
+  const renderDailySummary = () => {
+    if (!macros) return null;
+
+    const dayTotals = calculateDayTotals(weeklyMealPlan[selectedDay]);
+    
+    const getPercentage = (current: number, target: number) => {
+      return Math.min(Math.round((current / target) * 100), 100);
+    };
+
+    const getStatusColor = (current: number, target: number) => {
+      const percentage = (current / target) * 100;
+      if (percentage >= 90 && percentage <= 110) return 'text-green-500';
+      if (percentage >= 80 && percentage <= 120) return 'text-yellow-500';
+      return 'text-red-500';
+    };
+
+    return (
+      <Card className="p-6 bg-gradient-to-br from-primary/5 via-card to-card border-2 border-primary/20 shadow-xl">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-border/50">
+            <h3 className="text-lg font-bold text-foreground">Today's Progress</h3>
+            <span className="text-xs text-muted-foreground">{DAY_FULL_LABELS[selectedDay]}</span>
+          </div>
+
+          <div className="space-y-4">
+            {/* Calories */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">Calories</span>
+                <span className={`text-sm font-bold ${getStatusColor(dayTotals.calories, macros.calories)}`}>
+                  {Math.round(dayTotals.calories)} / {Math.round(macros.calories)}
+                </span>
+              </div>
+              <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-red-500 to-red-400 transition-all duration-500"
+                  style={{ width: `${getPercentage(dayTotals.calories, macros.calories)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Protein */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">Protein</span>
+                <span className={`text-sm font-bold ${getStatusColor(dayTotals.protein, macros.protein)}`}>
+                  {Math.round(dayTotals.protein)}g / {Math.round(macros.protein)}g
+                </span>
+              </div>
+              <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-500"
+                  style={{ width: `${getPercentage(dayTotals.protein, macros.protein)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Carbs */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">Carbs</span>
+                <span className={`text-sm font-bold ${getStatusColor(dayTotals.carbs, macros.carbs)}`}>
+                  {Math.round(dayTotals.carbs)}g / {Math.round(macros.carbs)}g
+                </span>
+              </div>
+              <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-500"
+                  style={{ width: `${getPercentage(dayTotals.carbs, macros.carbs)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Fats */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">Fats</span>
+                <span className={`text-sm font-bold ${getStatusColor(dayTotals.fats, macros.fats)}`}>
+                  {Math.round(dayTotals.fats)}g / {Math.round(macros.fats)}g
+                </span>
+              </div>
+              <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-500"
+                  style={{ width: `${getPercentage(dayTotals.fats, macros.fats)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
   const renderUserSettings = () => {
     if (!macros || !userProfile) return null;
 
@@ -573,7 +667,8 @@ export const MealPlans = () => {
                   {renderMealCard(weeklyMealPlan[selectedDay].snacks, 'Snacks', 'snacks')}
                 </div>
 
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-1 space-y-6">
+                  {renderDailySummary()}
                   {renderUserSettings()}
                 </div>
               </div>
