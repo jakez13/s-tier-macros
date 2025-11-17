@@ -48,7 +48,10 @@ export const MealPlans = () => {
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [viewingRecipe, setViewingRecipe] = useState<Recipe | null>(null);
-  const [customRecipes, setCustomRecipes] = useState<Recipe[]>([]);
+  const [customRecipes, setCustomRecipes] = useState<Recipe[]>(() => {
+    const saved = localStorage.getItem('customRecipes');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [editingMeal, setEditingMeal] = useState<{
     day: DayOfWeek;
     mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks';
@@ -78,7 +81,9 @@ export const MealPlans = () => {
   const getRecipeById = (id: number): Recipe | undefined => {
     const standardRecipe = RECIPES.find(r => r.id === id);
     if (standardRecipe) return standardRecipe;
-    return customRecipes.find(r => r.id === id);
+    const customRecipe = customRecipes.find(r => r.id === id);
+    console.log('Looking for recipe ID:', id, 'Found:', customRecipe ? customRecipe.name : 'Not found');
+    return customRecipe;
   };
 
   const handleAiMealCreated = (meal: {
@@ -115,7 +120,12 @@ export const MealPlans = () => {
       requiredFoods: []
     };
 
-    setCustomRecipes(prev => [...prev, newRecipe]);
+    const updatedCustomRecipes = [...customRecipes, newRecipe];
+    setCustomRecipes(updatedCustomRecipes);
+    localStorage.setItem('customRecipes', JSON.stringify(updatedCustomRecipes));
+    
+    console.log('Custom recipe created:', newRecipe);
+    console.log('All custom recipes:', updatedCustomRecipes);
     
     toast.success(`${meal.name} added to your recipes!`, {
       description: "You can now use it in your meal plans"
