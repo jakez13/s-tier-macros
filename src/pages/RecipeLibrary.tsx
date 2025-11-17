@@ -14,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const RecipeLibrary = () => {
   const navigate = useNavigate();
-  const { selectedRecipes, toggleRecipeSelection } = useApp();
+  const { selectedRecipes, toggleRecipeSelection, addRecipeToMealPlan, clearMealPlan } = useApp();
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [currentStep, setCurrentStep] = useState<'breakfast' | 'lunch' | 'dinner' | 'snacks'>('breakfast');
 
@@ -82,7 +82,24 @@ export const RecipeLibrary = () => {
 
   const handleNext = () => {
     if (isLastStep) {
-      navigate('/meal-plans');
+      // Populate the meal plan with selected recipes
+      clearMealPlan();
+      setTimeout(() => {
+        selectedRecipes.forEach(id => {
+          const recipe = RECIPES.find(r => r.id === id);
+          if (recipe) {
+            const mealTypeMap: { [key: string]: 'breakfast' | 'lunch' | 'dinner' | 'snacks' } = {
+              'breakfast': 'breakfast',
+              'lunch': 'lunch',
+              'dinner': 'dinner',
+              'snack': 'snacks'
+            };
+            const mealType = mealTypeMap[recipe.mealType];
+            addRecipeToMealPlan(id, mealType);
+          }
+        });
+        navigate('/meal-plans');
+      }, 100);
     } else {
       setCurrentStep(steps[currentStepIndex + 1]);
     }
