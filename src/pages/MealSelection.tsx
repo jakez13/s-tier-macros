@@ -41,7 +41,7 @@ export const MealSelection = () => {
   }, [selectedRecipes]);
 
   const currentStepCount = selectedCounts[currentStep];
-  const canProceed = currentStepCount >= 3;
+  const canProceed = currentStepCount >= 1;
 
   const getMealTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
@@ -54,14 +54,6 @@ export const MealSelection = () => {
   };
 
   const handleToggleRecipe = (recipe: Recipe) => {
-    const mealTypeKey = recipe.mealType === 'snack' ? 'snacks' : recipe.mealType;
-    const currentCount = selectedCounts[mealTypeKey as keyof typeof selectedCounts];
-    const isSelected = selectedRecipes.includes(recipe.id);
-    
-    if (!isSelected && currentCount >= 3) {
-      return; // Don't allow more than 3
-    }
-    
     toggleRecipeSelection(recipe.id);
   };
 
@@ -107,7 +99,7 @@ export const MealSelection = () => {
         {/* Header */}
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Choose Your Meals</h1>
-          <p className="text-sm md:text-base text-muted-foreground">Select exactly 3 meals for {stepLabel.toLowerCase()}</p>
+          <p className="text-sm md:text-base text-muted-foreground">Select at least 1 meal for {stepLabel.toLowerCase()}</p>
         </div>
 
         {/* Progress Steps */}
@@ -115,7 +107,7 @@ export const MealSelection = () => {
           <div className="flex items-center justify-between gap-2">
             {steps.map((step, idx) => {
               const stepCount = selectedCounts[step];
-              const isComplete = stepCount >= 3;
+              const isComplete = stepCount >= 1;
               const isCurrent = step === currentStep;
               const isPast = idx < currentStepIndex;
 
@@ -141,7 +133,7 @@ export const MealSelection = () => {
                     <p className={`text-xs mt-1 ${
                       isCurrent ? 'text-primary font-medium' : 'text-muted-foreground'
                     }`}>
-                      {stepCount}/3 selected
+                      {stepCount} selected
                     </p>
                   </div>
                 </div>
@@ -154,19 +146,16 @@ export const MealSelection = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           {currentRecipes.map((recipe) => {
             const isSelected = selectedRecipes.includes(recipe.id);
-            const canSelect = currentStepCount < 3 || isSelected;
 
             return (
               <Card
                 key={recipe.id}
-                onClick={() => canSelect && handleToggleRecipe(recipe)}
+                onClick={() => handleToggleRecipe(recipe)}
                 className={`cursor-pointer transition-all touch-manipulation ${
                   isSelected
                     ? 'ring-2 ring-primary shadow-md bg-primary/5'
-                    : canSelect
-                    ? 'hover:shadow-md hover:border-primary/50'
-                    : 'opacity-50 cursor-not-allowed'
-                } ${!canSelect ? 'pointer-events-none' : ''}`}
+                    : 'hover:shadow-md hover:border-primary/50'
+                }`}
               >
                 <div className="p-4 md:p-5">
                   <div className="flex items-start justify-between gap-2 mb-3">
