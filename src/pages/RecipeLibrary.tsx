@@ -160,15 +160,16 @@ export const RecipeLibrary = () => {
               return (
                 <Card 
                   key={recipe.id} 
-                  className={`p-4 bg-secondary/50 border-border transition-all ${
+                  className={`p-4 bg-secondary/50 border-border transition-all cursor-pointer ${
                     isSelected ? 'border-primary ring-2 ring-primary/20' : 'hover:border-primary/50'
                   }`}
+                  onClick={() => handleToggleRecipe(recipe)}
                 >
                   <div className="flex items-start gap-3 mb-3">
                     <Checkbox
                       checked={isSelected}
                       onCheckedChange={() => handleToggleRecipe(recipe)}
-                      className="mt-1"
+                      className="mt-1 pointer-events-none"
                     />
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-foreground mb-1">{recipe.name}</h3>
@@ -195,13 +196,16 @@ export const RecipeLibrary = () => {
                       <Clock size={14} />
                       <span>{getTotalTime(recipe.prepTime, recipe.cookTime)} min total</span>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setSelectedRecipe(recipe)}
-                    >
-                      View Details
-                    </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedRecipe(recipe);
+                    }}
+                  >
+                    View Details
+                  </Button>
                   </div>
                 </Card>
               );
