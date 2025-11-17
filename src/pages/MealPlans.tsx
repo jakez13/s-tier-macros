@@ -685,29 +685,60 @@ export const MealPlans = () => {
     <div className="min-h-screen bg-background pb-24 md:pb-8">
       {isGenerating && renderLoadingOverlay()}
 
-      <div className="container max-w-7xl mx-auto px-4 py-8 space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="container max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
+        <div className="flex flex-col gap-3 sm:gap-4">
           <div className="space-y-1">
-            <h1 className="text-4xl font-bold text-foreground">Meal Plans</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">Meal Plans</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               AI-powered weekly meal planning optimized for your goals
             </p>
           </div>
           <Button 
             onClick={() => navigate('/settings')}
-            size="lg"
+            size="default"
             variant="outline"
-            className="hover:bg-primary/10 hover:border-primary/30 transition-all duration-300"
+            className="w-full sm:w-auto hover:bg-primary/10 hover:border-primary/30 transition-all duration-300"
           >
-            <Settings className="h-5 w-5 mr-2" />
+            <Settings className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             User Settings
           </Button>
         </div>
 
-        <div className="space-y-6 mt-8">
-            <Card className="p-6 bg-gradient-to-br from-card to-card/80 border-border/50 shadow-lg">
+        <div className="space-y-4 sm:space-y-6">
+            <Card className="p-4 sm:p-6 bg-gradient-to-br from-card to-card/80 border-border/50 shadow-lg">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-base sm:text-lg font-semibold text-foreground">Select Day</h2>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => {/* Previous week */}} className="h-8 w-8 p-0">
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-xs sm:text-sm text-muted-foreground font-medium px-2">Week 1</span>
+                    <Button variant="ghost" size="sm" onClick={() => {/* Next week */}} className="h-8 w-8 p-0">
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+                  {DAYS.map((day) => (
+                    <button
+                      key={day}
+                      onClick={() => setSelectedDay(day)}
+                      className={`p-2 sm:p-3 rounded-xl text-center transition-all duration-300 touch-manipulation ${
+                        selectedDay === day
+                          ? 'bg-primary text-primary-foreground shadow-lg scale-105 font-bold'
+                          : 'bg-card hover:bg-muted text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <span className="block text-[10px] sm:text-xs uppercase font-semibold tracking-wider">
+                        {DAY_LABELS[day]}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </Card>
                   <h2 className="text-lg font-bold text-foreground">Select Day</h2>
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-primary/10">
