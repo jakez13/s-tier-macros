@@ -289,6 +289,13 @@ export const MealPlans = () => {
     toast.success('Monday plan copied to entire week');
   };
 
+  const skipMeal = (day: DayOfWeek, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => {
+    const newPlan = { ...weeklyMealPlan };
+    newPlan[day][mealType] = null;
+    setWeeklyMealPlan(newPlan);
+    toast.success('Meal skipped');
+  };
+
   const handleMealClick = (day: DayOfWeek, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => {
     setEditingMeal({ day, mealType });
     setMealFilter(mealType);
@@ -404,7 +411,19 @@ export const MealPlans = () => {
                 {recipe.name}
               </h4>
             </div>
-            <RefreshCw className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  skipMeal(selectedDay, mealType);
+                }}
+              >
+                <RefreshCw className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+              </Button>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 gap-3">
