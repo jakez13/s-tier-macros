@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/contexts/AppContext';
 import { RECIPES, Recipe } from '@/data/recipesData';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-import { Loader2, ChevronLeft, ChevronRight, Check, Clock, Circle, Sparkles, TrendingUp, Target } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, User, Activity, TrendingUp, Target, Sparkles, Check, Loader2, Circle } from 'lucide-react';
 import { toast } from 'sonner';
 import { DailyMealPlan } from '@/contexts/AppContext';
-import { Progress } from '@/components/ui/progress';
 
 type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
@@ -38,7 +38,8 @@ interface LoadingStep {
 }
 
 export const MealPlans = () => {
-  const { macros, weeklyMealPlan, setWeeklyMealPlan, selectedRecipes } = useApp();
+  const navigate = useNavigate();
+  const { macros, weeklyMealPlan, setWeeklyMealPlan, selectedRecipes, userProfile } = useApp();
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('monday');
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingSteps, setLoadingSteps] = useState<LoadingStep[]>([
@@ -344,22 +345,21 @@ export const MealPlans = () => {
     );
   };
 
-  const renderDayTotals = (day: DayOfWeek) => {
-    const totals = calculateDayTotals(weeklyMealPlan[day]);
-    
-    if (!macros) return null;
+  const renderUserSettings = () => {
+    if (!macros || !userProfile) return null;
 
-    const calorieDiff = totals.calories - macros.calories;
-    const proteinDiff = totals.protein - macros.protein;
-    const carbsDiff = totals.carbs - macros.carbs;
-    const fatsDiff = totals.fats - macros.fats;
-    
-    const caloriePercent = (Math.abs(calorieDiff) / macros.calories) * 100;
-    const proteinPercent = (Math.abs(proteinDiff) / macros.protein) * 100;
-    
-    const isOnTarget = caloriePercent <= 10 && proteinPercent <= 10;
-    const calorieProgress = Math.min((totals.calories / macros.calories) * 100, 100);
-    const proteinProgress = Math.min((totals.protein / macros.protein) * 100, 100);
+    const activityLabels = {
+      minimal: 'Minimal Activity',
+      light: 'Light Activity',
+      moderate: 'Moderate Activity',
+      active: 'Very Active'
+    };
+
+    const goalLabels = {
+      bulk: 'Bulk (Gain)',
+      maintain: 'Maintain',
+      cut: 'Cut (Lose)'
+    };
 
     return (
       <Card className="p-6 bg-gradient-to-br from-card via-card/95 to-card/90 border-2 border-border/50 shadow-xl">
@@ -367,81 +367,74 @@ export const MealPlans = () => {
           <div className="flex items-center justify-between pb-4 border-b border-border/50">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
-                <Target className="h-5 w-5 text-primary" />
+                <User className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-foreground">Daily Summary</h3>
-                <p className="text-xs text-muted-foreground">Your progress vs goals</p>
+                <h3 className="text-base font-bold text-foreground">Your Profile</h3>
+                <p className="text-xs text-muted-foreground">Current settings</p>
               </div>
             </div>
-            {isOnTarget ? (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 rounded-full border border-green-500/20">
-                <Check className="h-4 w-4 text-green-500" />
-                <span className="text-xs font-bold text-green-500 uppercase tracking-wide">On Target</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-500/10 rounded-full border border-yellow-500/20">
-                <TrendingUp className="h-4 w-4 text-yellow-500" />
-                <span className="text-xs font-bold text-yellow-500 uppercase tracking-wide">Adjust</span>
-              </div>
-            )}
+            <Button 
+              onClick={() => navigate('/settings')}
+              size="sm"
+              variant="outline"
+              className="hover:bg-primary/10"
+            >
+              <Settings className="h-4 w-4 mr-1.5" />
+              Edit
+            </Button>
           </div>
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#ef4444' }} />
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Calories</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-base font-bold" style={{ color: '#ef4444' }}>
-                    {Math.round(totals.calories)}
-                  </span>
-                  <span className="text-xs text-muted-foreground"> / {Math.round(macros.calories)}</span>
-                </div>
-              </div>
-              <Progress value={calorieProgress} className="h-2" />
-              <p className="text-[10px] text-muted-foreground">
-                {calorieDiff > 0 ? '+' : ''}{Math.round(calorieDiff)} cal {calorieDiff > 0 ? 'over' : 'under'} target
-              </p>
+            <div className="flex items-center justify-between py-2 border-b border-border/30">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Weight</span>
+              <span className="text-base font-bold text-foreground">{userProfile.weight} lbs</span>
+            </div>
+            
+            <div className="flex items-center justify-between py-2 border-b border-border/30">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Height</span>
+              <span className="text-base font-bold text-foreground">
+                {userProfile.heightFeet}'{userProfile.heightInches}"
+              </span>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3b82f6' }} />
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Protein</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-base font-bold" style={{ color: '#3b82f6' }}>
-                    {Math.round(totals.protein)}g
-                  </span>
-                  <span className="text-xs text-muted-foreground"> / {Math.round(macros.protein)}g</span>
-                </div>
-              </div>
-              <Progress value={proteinProgress} className="h-2" />
-              <p className="text-[10px] text-muted-foreground">
-                {proteinDiff > 0 ? '+' : ''}{Math.round(proteinDiff)}g {proteinDiff > 0 ? 'over' : 'under'} target
-              </p>
+            <div className="flex items-center justify-between py-2 border-b border-border/30">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Age</span>
+              <span className="text-base font-bold text-foreground">{userProfile.age} years</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <div className="p-3 bg-background/50 rounded-lg border border-border/30">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10b981' }} />
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Carbs</span>
+            <div className="flex items-center justify-between py-2 border-b border-border/30">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Activity</span>
+              <span className="text-sm font-semibold text-foreground">
+                {activityLabels[userProfile.activityLevel]}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between py-2 border-b border-border/30">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Goal</span>
+              <span className="text-sm font-semibold text-foreground">
+                {goalLabels[userProfile.goal]}
+              </span>
+            </div>
+
+            <div className="pt-4 mt-4 border-t border-border/50">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground uppercase tracking-wider">Daily Calories</span>
+                  <span className="font-bold text-foreground">{Math.round(macros.calories)} cal</span>
                 </div>
-                <p className="text-lg font-bold" style={{ color: '#10b981' }}>{Math.round(totals.carbs)}g</p>
-                <p className="text-[9px] text-muted-foreground">Target: {Math.round(macros.carbs)}g</p>
-              </div>
-              <div className="p-3 bg-background/50 rounded-lg border border-border/30">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#f59e0b' }} />
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Fats</span>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground uppercase tracking-wider">Daily Protein</span>
+                  <span className="font-bold text-foreground">{Math.round(macros.protein)}g</span>
                 </div>
-                <p className="text-lg font-bold" style={{ color: '#f59e0b' }}>{Math.round(totals.fats)}g</p>
-                <p className="text-[9px] text-muted-foreground">Target: {Math.round(macros.fats)}g</p>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground uppercase tracking-wider">Daily Carbs</span>
+                  <span className="font-bold text-foreground">{Math.round(macros.carbs)}g</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground uppercase tracking-wider">Daily Fats</span>
+                  <span className="font-bold text-foreground">{Math.round(macros.fats)}g</span>
+                </div>
               </div>
             </div>
           </div>
@@ -463,22 +456,13 @@ export const MealPlans = () => {
             </p>
           </div>
           <Button 
-            onClick={generateWeeklyMealPlan}
-            disabled={isGenerating}
+            onClick={() => navigate('/settings')}
             size="lg"
-            className="bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 transition-all duration-300 shadow-lg hover:shadow-xl"
+            variant="outline"
+            className="hover:bg-primary/10 hover:border-primary/30 transition-all duration-300"
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-5 w-5 mr-2" />
-                Generate 7-Day Plan
-              </>
-            )}
+            <Settings className="h-5 w-5 mr-2" />
+            User Settings
           </Button>
         </div>
 
@@ -552,7 +536,7 @@ export const MealPlans = () => {
                 </div>
 
                 <div className="lg:col-span-1">
-                  {renderDayTotals(selectedDay)}
+                  {renderUserSettings()}
                 </div>
               </div>
             </div>
