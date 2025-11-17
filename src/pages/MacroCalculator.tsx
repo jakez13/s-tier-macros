@@ -79,7 +79,7 @@ export const MacroCalculator = () => {
     setUserProfile(profile);
     setMacros(macros);
     
-    navigate('/recipes');
+    navigate('/meal-selection');
   };
 
   const isFormValid = weight && heightFeet && heightInches && age;
