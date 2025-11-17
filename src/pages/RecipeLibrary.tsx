@@ -57,7 +57,7 @@ export const RecipeLibrary = () => {
 
   // Get current step's count
   const currentStepCount = selectedCounts[currentStep];
-  const canProceed = currentStepCount >= 3;
+  const canProceed = currentStepCount >= 1;
 
   const getMealTypeBadge = (type: string) => {
     const colors = {
@@ -106,6 +106,16 @@ export const RecipeLibrary = () => {
   };
 
   const handleSkip = () => {
+    // Can't skip if no selection made - at least 1 required
+    if (currentStepCount < 1) {
+      toast({
+        title: "Selection Required",
+        description: `Please select at least 1 ${currentStep} recipe before continuing.`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (isLastStep) {
       navigate('/meal-plans');
     } else {
@@ -256,7 +266,7 @@ export const RecipeLibrary = () => {
                   </TooltipTrigger>
                   {!canProceed && (
                     <TooltipContent>
-                      <p>Select at least 3 recipes to continue, or skip</p>
+                      <p>Please select at least 1 {currentStep} recipe to continue</p>
                     </TooltipContent>
                   )}
                 </Tooltip>
