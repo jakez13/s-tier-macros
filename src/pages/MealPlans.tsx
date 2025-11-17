@@ -8,6 +8,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } f
 import { ChevronLeft, ChevronRight, Settings, User, Activity, TrendingUp, Target, Sparkles, Check, Loader2, Circle, RefreshCw, Clock, ChefHat } from 'lucide-react';
 import { toast } from 'sonner';
 import { DailyMealPlan } from '@/contexts/AppContext';
+import { AiMealDialog } from '@/components/AiMealDialog';
 
 type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
@@ -43,6 +44,8 @@ export const MealPlans = () => {
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('monday');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
+  const [customRecipes, setCustomRecipes] = useState<Recipe[]>([]);
   const [editingMeal, setEditingMeal] = useState<{
     day: DayOfWeek;
     mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks';
@@ -70,7 +73,50 @@ export const MealPlans = () => {
   }, [selectedRecipes]); // Regenerate when favorites change
 
   const getRecipeById = (id: number): Recipe | undefined => {
-    return RECIPES.find(r => r.id === id);
+    const standardRecipe = RECIPES.find(r => r.id === id);
+    if (standardRecipe) return standardRecipe;
+    return customRecipes.find(r => r.id === id);
+  };
+
+  const handleAiMealCreated = (meal: {
+    name: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+    instructions?: string;
+  }) => {
+    // Generate unique ID for custom meal
+    const newId = Math.max(
+      ...RECIPES.map(r => r.id),
+      ...customRecipes.map(r => r.id),
+      0
+    ) + 1;
+
+    const newRecipe: Recipe = {
+      id: newId,
+      name: meal.name,
+      mealType: meal.mealType,
+      ingredients: [], // AI meals don't need detailed ingredients
+      servingSize: "1 serving",
+      macros: {
+        protein: meal.protein,
+        carbs: meal.carbs,
+        fats: meal.fat,
+        calories: meal.calories
+      },
+      instructions: meal.instructions ? [meal.instructions] : ["Custom AI-generated meal"],
+      prepTime: "Varies",
+      cookTime: "Varies",
+      requiredFoods: []
+    };
+
+    setCustomRecipes(prev => [...prev, newRecipe]);
+    
+    toast.success(`${meal.name} added to your recipes!`, {
+      description: "You can now use it in your meal plans"
+    });
   };
 
   const calculateDayTotals = (day: DailyMealPlan) => {
@@ -260,10 +306,11 @@ export const MealPlans = () => {
   };
 
   const getFilteredRecipes = () => {
+    const allRecipes = [...RECIPES, ...customRecipes];
     if (mealFilter === 'all') {
-      return RECIPES;
+      return allRecipes;
     }
-    return RECIPES.filter(r => r.mealType === mealFilter);
+    return allRecipes.filter(r => r.mealType === mealFilter);
   };
 
   const renderLoadingOverlay = () => (
@@ -722,6 +769,18 @@ export const MealPlans = () => {
               >
                 Snacks
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsDrawerOpen(false);
+                  setIsAiDialogOpen(true);
+                }}
+                className="ml-auto gap-2 border-primary/50 hover:bg-primary/10"
+              >
+                <Sparkles className="w-4 h-4" />
+                AI Custom Meal
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -774,6 +833,12 @@ export const MealPlans = () => {
           </div>
         </DrawerContent>
       </Drawer>
+
+      <AiMealDialog
+        open={isAiDialogOpen}
+        onOpenChange={setIsAiDialogOpen}
+        onMealCreated={handleAiMealCreated}
+      />
     </div>
   );
 };

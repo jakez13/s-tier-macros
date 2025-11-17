@@ -1,0 +1,4 @@
+project_id = "afprtwnwrjyoednctjlf"
+
+[functions.generate-ai-meal]
+verify_jwt = false
