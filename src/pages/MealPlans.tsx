@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { RECIPES, Recipe } from '@/data/recipesData';
 import { Card } from '@/components/ui/card';
@@ -47,6 +47,18 @@ export const MealPlans = () => {
     { label: 'Building 7 days of variety', status: 'pending' },
     { label: 'Calculating totals', status: 'pending' },
   ]);
+
+  // Auto-generate plan on mount if empty
+  useEffect(() => {
+    const isPlanEmpty = DAYS.every(day => {
+      const dayPlan = weeklyMealPlan[day];
+      return !dayPlan.breakfast && !dayPlan.lunch && !dayPlan.dinner && !dayPlan.snacks;
+    });
+
+    if (isPlanEmpty && !isGenerating && macros) {
+      generateWeeklyMealPlan();
+    }
+  }, []); // Only run once on mount
 
   const getRecipeById = (id: number): Recipe | undefined => {
     return RECIPES.find(r => r.id === id);
