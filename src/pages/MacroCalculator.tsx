@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const MacroCalculator = () => {
   const navigate = useNavigate();
@@ -84,8 +85,9 @@ export const MacroCalculator = () => {
   const isFormValid = weight && heightFeet && heightInches && age;
 
   return (
-    <div className="min-h-screen bg-background p-4 flex items-center justify-center">
-      <Card className="w-full max-w-md p-6 bg-secondary/50 border-border">
+    <ScrollArea className="h-screen bg-background">
+      <div className="min-h-screen p-4 py-8 flex items-start justify-center">
+        <Card className="w-full max-w-md p-6 bg-secondary/50 border-border mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">Let's Calculate Your Macros</h1>
         <p className="text-muted-foreground mb-6">We'll build your nutrition plan based on your goals</p>
         
@@ -208,7 +210,8 @@ export const MacroCalculator = () => {
             Next: Choose Your Foods
           </Button>
         </form>
-      </Card>
-    </div>
+        </Card>
+      </div>
+    </ScrollArea>
   );
 };
