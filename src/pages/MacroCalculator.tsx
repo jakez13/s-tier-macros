@@ -207,7 +207,7 @@ export const MacroCalculator = () => {
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             disabled={!isFormValid}
           >
-            Next: Choose Your Foods
+            Next: Pick Your Favorite Recipes
           </Button>
         </form>
         </Card>

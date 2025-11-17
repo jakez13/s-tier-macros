@@ -16,10 +16,8 @@ export interface Macros {
   fats: number;
 }
 
-export interface FoodPreferences {
-  proteins: string[];
-  carbs: string[];
-  fats: string[];
+export interface SelectedRecipes {
+  recipeIds: number[];
 }
 
 export interface MealPlan {
@@ -41,8 +39,9 @@ interface AppContextType {
   setUserProfile: (profile: UserProfile) => void;
   macros: Macros | null;
   setMacros: (macros: Macros) => void;
-  foodPreferences: FoodPreferences | null;
-  setFoodPreferences: (preferences: FoodPreferences) => void;
+  selectedRecipes: number[];
+  setSelectedRecipes: (recipeIds: number[]) => void;
+  toggleRecipeSelection: (recipeId: number) => void;
   currentMealPlan: MealPlan;
   setCurrentMealPlan: (plan: MealPlan) => void;
   savedMealPlans: SavedMealPlan[];
@@ -78,12 +77,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   });
 
-  const [foodPreferences, setFoodPreferencesState] = useState<FoodPreferences | null>(() => {
+  const [selectedRecipes, setSelectedRecipesState] = useState<number[]>(() => {
     try {
-      const saved = localStorage.getItem('foodPreferences');
-      return saved ? JSON.parse(saved) : null;
+      const saved = localStorage.getItem('selectedRecipes');
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return null;
+      return [];
     }
   });
 
@@ -136,9 +135,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('macros', JSON.stringify(newMacros));
   };
 
-  const setFoodPreferences = (preferences: FoodPreferences) => {
-    setFoodPreferencesState(preferences);
-    localStorage.setItem('foodPreferences', JSON.stringify(preferences));
+  const setSelectedRecipes = (recipeIds: number[]) => {
+    setSelectedRecipesState(recipeIds);
+    localStorage.setItem('selectedRecipes', JSON.stringify(recipeIds));
+  };
+
+  const toggleRecipeSelection = (recipeId: number) => {
+    const updated = selectedRecipes.includes(recipeId)
+      ? selectedRecipes.filter(id => id !== recipeId)
+      : [...selectedRecipes, recipeId];
+    setSelectedRecipes(updated);
   };
 
   const setCurrentMealPlan = (plan: MealPlan) => {
@@ -213,8 +219,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setUserProfile,
         macros,
         setMacros,
-        foodPreferences,
-        setFoodPreferences,
+        selectedRecipes,
+        setSelectedRecipes,
+        toggleRecipeSelection,
         currentMealPlan,
         setCurrentMealPlan,
         savedMealPlans,
