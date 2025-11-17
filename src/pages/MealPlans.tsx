@@ -403,7 +403,7 @@ export const MealPlans = () => {
       <Card className="p-6 bg-gradient-to-br from-primary/5 via-card to-card border-2 border-primary/20 shadow-xl">
         <div className="space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-border/50">
-            <h3 className="text-lg font-bold text-foreground">Today's Progress</h3>
+            <h3 className="text-lg font-bold text-foreground">Today's Meal Intake</h3>
             <span className="text-xs text-muted-foreground">{DAY_FULL_LABELS[selectedDay]}</span>
           </div>
 
