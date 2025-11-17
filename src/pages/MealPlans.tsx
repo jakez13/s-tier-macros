@@ -420,7 +420,7 @@ export const MealPlans = () => {
                 skipMeal(selectedDay, mealType);
               }}
             >
-              Skip
+              Skip this meal
             </Button>
           </div>
           
