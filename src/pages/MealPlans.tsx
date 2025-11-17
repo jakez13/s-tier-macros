@@ -3,7 +3,7 @@ import { useApp } from '@/contexts/AppContext';
 import { RECIPES, Recipe } from '@/data/recipesData';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Loader2, ChevronLeft, ChevronRight, Check, Clock, Circle, Sparkles, TrendingUp, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import { DailyMealPlan } from '@/contexts/AppContext';
@@ -482,23 +482,7 @@ export const MealPlans = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="weekly" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2 h-12 bg-muted/30 p-1 rounded-xl">
-            <TabsTrigger 
-              value="today" 
-              className="data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg text-sm font-semibold"
-            >
-              Today
-            </TabsTrigger>
-            <TabsTrigger 
-              value="weekly" 
-              className="data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg text-sm font-semibold"
-            >
-              Weekly View
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="weekly" className="space-y-6 mt-8">
+        <div className="space-y-6 mt-8">
             <Card className="p-6 bg-gradient-to-br from-card to-card/80 border-border/50 shadow-lg">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -572,24 +556,7 @@ export const MealPlans = () => {
                 </div>
               </div>
             </div>
-          </TabsContent>
-
-          <TabsContent value="today" className="space-y-6 mt-8">
-            <Card className="p-12 bg-gradient-to-br from-card to-card/80 border-2 border-dashed border-border/50">
-              <div className="text-center space-y-4">
-                <div className="mx-auto w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center">
-                  <Clock className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-foreground mb-2">Coming Soon</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Manual meal building for today is coming soon. Use Weekly View to generate and manage your meal plans.
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        </div>
       </div>
     </div>
   );
