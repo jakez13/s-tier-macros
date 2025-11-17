@@ -750,6 +750,44 @@ export const MealPlans = () => {
           </DrawerHeader>
           
           <div className="px-4 pb-6 overflow-y-auto">
+            {macros && editingMeal && (
+              <Card className="mb-6 p-4 bg-gradient-to-br from-primary/5 to-background border-primary/20">
+                <h4 className="text-sm font-semibold text-foreground mb-3">Remaining for Today</h4>
+                <div className="grid grid-cols-4 gap-2">
+                  {(() => {
+                    const dayTotals = calculateDayTotals(weeklyMealPlan[editingMeal.day]);
+                    const remaining = {
+                      calories: Math.max(0, macros.calories - dayTotals.calories),
+                      protein: Math.max(0, macros.protein - dayTotals.protein),
+                      carbs: Math.max(0, macros.carbs - dayTotals.carbs),
+                      fats: Math.max(0, macros.fats - dayTotals.fats)
+                    };
+                    
+                    return (
+                      <>
+                        <div className="text-center p-2 rounded-lg bg-background/60 border border-border/30">
+                          <div className="text-lg font-bold text-foreground">{Math.round(remaining.calories)}</div>
+                          <div className="text-[10px] text-muted-foreground uppercase">Cal left</div>
+                        </div>
+                        <div className="text-center p-2 rounded-lg bg-background/60 border border-border/30">
+                          <div className="text-lg font-bold text-foreground">{Math.round(remaining.protein)}g</div>
+                          <div className="text-[10px] text-muted-foreground uppercase">Pro left</div>
+                        </div>
+                        <div className="text-center p-2 rounded-lg bg-background/60 border border-border/30">
+                          <div className="text-lg font-bold text-foreground">{Math.round(remaining.carbs)}g</div>
+                          <div className="text-[10px] text-muted-foreground uppercase">Carb left</div>
+                        </div>
+                        <div className="text-center p-2 rounded-lg bg-background/60 border border-border/30">
+                          <div className="text-lg font-bold text-foreground">{Math.round(remaining.fats)}g</div>
+                          <div className="text-[10px] text-muted-foreground uppercase">Fat left</div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </Card>
+            )}
+            
             <div className="flex gap-2 mb-6 flex-wrap">
               <Button
                 variant={mealFilter === 'all' ? 'default' : 'outline'}
