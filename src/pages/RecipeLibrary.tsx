@@ -16,6 +16,11 @@ export const RecipeLibrary = () => {
   const navigate = useNavigate();
   const { selectedRecipes, toggleRecipeSelection } = useApp();
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [currentStep, setCurrentStep] = useState<'breakfast' | 'lunch' | 'dinner' | 'snacks'>('breakfast');
+
+  const steps: Array<'breakfast' | 'lunch' | 'dinner' | 'snacks'> = ['breakfast', 'lunch', 'dinner', 'snacks'];
+  const currentStepIndex = steps.indexOf(currentStep);
+  const isLastStep = currentStepIndex === steps.length - 1;
 
   // Group recipes by meal type
   const recipesByMealType = useMemo(() => {
@@ -50,11 +55,9 @@ export const RecipeLibrary = () => {
     return counts;
   }, [selectedRecipes]);
 
-  const canContinue = 
-    selectedCounts.breakfast >= 3 && 
-    selectedCounts.lunch >= 3 && 
-    selectedCounts.dinner >= 3 && 
-    selectedCounts.snacks >= 3;
+  // Get current step's count
+  const currentStepCount = selectedCounts[currentStep];
+  const canProceed = currentStepCount >= 3;
 
   const getMealTypeBadge = (type: string) => {
     const colors = {
@@ -77,8 +80,30 @@ export const RecipeLibrary = () => {
     });
   };
 
-  const handleContinue = () => {
-    navigate('/meal-plans');
+  const handleNext = () => {
+    if (isLastStep) {
+      navigate('/meal-plans');
+    } else {
+      setCurrentStep(steps[currentStepIndex + 1]);
+    }
+  };
+
+  const handleSkip = () => {
+    if (isLastStep) {
+      navigate('/meal-plans');
+    } else {
+      setCurrentStep(steps[currentStepIndex + 1]);
+    }
+  };
+
+  const getStepTitle = (step: string) => {
+    const titles = {
+      breakfast: 'BREAKFAST RECIPES',
+      lunch: 'LUNCH RECIPES',
+      dinner: 'DINNER RECIPES',
+      snacks: 'SNACKS & SHAKES'
+    };
+    return titles[step as keyof typeof titles];
   };
 
   const getTotalTime = (prepTime: string, cookTime: string) => {
@@ -91,118 +116,126 @@ export const RecipeLibrary = () => {
     return recipe.ingredients.slice(0, 3).map(ing => ing.name).join(', ');
   };
 
-  const renderMealSection = (
-    title: string, 
-    recipes: Recipe[], 
-    mealTypeKey: keyof typeof selectedCounts
-  ) => {
-    const count = selectedCounts[mealTypeKey];
-    const isValid = count >= 3;
-
-    return (
-      <div className="mb-8">
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold text-foreground mb-1">{title}</h2>
-          <p className="text-sm text-muted-foreground mb-2">Select at least 3</p>
-          <div className={`flex items-center gap-2 text-sm font-medium ${isValid ? 'text-green-500' : 'text-red-500'}`}>
-            {isValid && <CheckCircle2 size={16} />}
-            <span>Selected: {count}/3 minimum</span>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {recipes.map(recipe => {
-            const isSelected = selectedRecipes.includes(recipe.id);
-            return (
-              <Card 
-                key={recipe.id} 
-                className={`p-4 bg-secondary/50 border-border transition-all ${
-                  isSelected ? 'border-primary ring-2 ring-primary/20' : 'hover:border-primary/50'
-                }`}
-              >
-                <div className="flex items-start gap-3 mb-3">
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => handleToggleRecipe(recipe)}
-                    className="mt-1"
-                  />
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-foreground mb-1">{recipe.name}</h3>
-                    <Badge className={`${getMealTypeBadge(recipe.mealType)} text-white mb-2`}>
-                      {recipe.mealType.charAt(0).toUpperCase() + recipe.mealType.slice(1)}
-                    </Badge>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      <span className="font-medium">Ingredients:</span> {getMainIngredients(recipe)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center mb-3 text-sm">
-                  <div className="flex gap-4 text-muted-foreground">
-                    <span>P: {recipe.macros.protein}g</span>
-                    <span>C: {recipe.macros.carbs}g</span>
-                    <span>F: {recipe.macros.fats}g</span>
-                  </div>
-                  <span className="font-semibold text-foreground">{recipe.macros.calories} cal</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Clock size={14} />
-                    <span>{getTotalTime(recipe.prepTime, recipe.cookTime)} min total</span>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setSelectedRecipe(recipe)}
-                  >
-                    View Details
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-        
-        <div className="border-t border-border"></div>
-      </div>
-    );
-  };
+  // Render current step's recipes
+  const currentRecipes = recipesByMealType[currentStep];
+  const currentCount = selectedCounts[currentStep];
+  const isValid = currentCount >= 3;
 
   return (
     <ScrollArea className="h-screen bg-background">
       <div className="min-h-screen pb-32 px-4 pt-6">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-foreground mb-2">PICK YOUR FAVORITE RECIPES</h1>
-          <p className="text-muted-foreground mb-8">
-            Pick your favorite recipes for each meal type. Choose at least 3 per category.<br />
+          {/* Progress indicator */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            {steps.map((step, index) => (
+              <div 
+                key={step}
+                className={`h-2 w-16 rounded-full transition-colors ${
+                  index < currentStepIndex 
+                    ? 'bg-green-500' 
+                    : index === currentStepIndex 
+                    ? 'bg-primary' 
+                    : 'bg-muted'
+                }`}
+              />
+            ))}
+          </div>
+
+          <h1 className="text-3xl font-bold text-foreground mb-2">{getStepTitle(currentStep)}</h1>
+          <p className="text-muted-foreground mb-4">
+            Select at least 3 recipes or skip to move on.<br />
             These will be your go-to meals. You can always add more or make changes later.
           </p>
 
-          {renderMealSection('BREAKFAST RECIPES', recipesByMealType.breakfast, 'breakfast')}
-          {renderMealSection('LUNCH RECIPES', recipesByMealType.lunch, 'lunch')}
-          {renderMealSection('DINNER RECIPES', recipesByMealType.dinner, 'dinner')}
-          {renderMealSection('SNACKS & SHAKES', recipesByMealType.snacks, 'snacks')}
+          {/* Selection counter */}
+          <div className={`flex items-center gap-2 text-sm font-medium mb-6 ${isValid ? 'text-green-500' : 'text-muted-foreground'}`}>
+            {isValid && <CheckCircle2 size={16} />}
+            <span>Selected: {currentCount}/3 minimum</span>
+          </div>
 
+          {/* Recipe grid for current step */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {currentRecipes.map(recipe => {
+              const isSelected = selectedRecipes.includes(recipe.id);
+              return (
+                <Card 
+                  key={recipe.id} 
+                  className={`p-4 bg-secondary/50 border-border transition-all ${
+                    isSelected ? 'border-primary ring-2 ring-primary/20' : 'hover:border-primary/50'
+                  }`}
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => handleToggleRecipe(recipe)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-foreground mb-1">{recipe.name}</h3>
+                      <Badge className={`${getMealTypeBadge(recipe.mealType)} text-white mb-2`}>
+                        {recipe.mealType.charAt(0).toUpperCase() + recipe.mealType.slice(1)}
+                      </Badge>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        <span className="font-medium">Ingredients:</span> {getMainIngredients(recipe)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center mb-3 text-sm">
+                    <div className="flex gap-4 text-muted-foreground">
+                      <span>P: {recipe.macros.protein}g</span>
+                      <span>C: {recipe.macros.carbs}g</span>
+                      <span>F: {recipe.macros.fats}g</span>
+                    </div>
+                    <span className="font-semibold text-foreground">{recipe.macros.calories} cal</span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Clock size={14} />
+                      <span>{getTotalTime(recipe.prepTime, recipe.cookTime)} min total</span>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSelectedRecipe(recipe)}
+                    >
+                      View Details
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Navigation buttons */}
           <div className="fixed bottom-20 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t border-border">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl mx-auto flex gap-4">
+              <Button 
+                variant="outline"
+                size="lg"
+                onClick={handleSkip}
+                className="flex-1"
+              >
+                Skip for Now
+              </Button>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="w-full">
+                    <div className="flex-1">
                       <Button 
-                        className="w-full" 
                         size="lg"
-                        onClick={handleContinue}
-                        disabled={!canContinue}
+                        onClick={handleNext}
+                        disabled={!canProceed}
+                        className="w-full"
                       >
-                        Continue to Meal Plan
+                        {isLastStep ? 'Continue to Meal Plan' : 'Next'}
                       </Button>
                     </div>
                   </TooltipTrigger>
-                  {!canContinue && (
+                  {!canProceed && (
                     <TooltipContent>
-                      <p>Please select at least 3 recipes in each category</p>
+                      <p>Select at least 3 recipes to continue, or skip</p>
                     </TooltipContent>
                   )}
                 </Tooltip>
