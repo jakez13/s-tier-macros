@@ -38,7 +38,7 @@ interface LoadingStep {
 }
 
 export const MealPlans = () => {
-  const { macros, weeklyMealPlan, setWeeklyMealPlan } = useApp();
+  const { macros, weeklyMealPlan, setWeeklyMealPlan, selectedRecipes } = useApp();
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('monday');
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingSteps, setLoadingSteps] = useState<LoadingStep[]>([
@@ -48,17 +48,19 @@ export const MealPlans = () => {
     { label: 'Calculating totals', status: 'pending' },
   ]);
 
-  // Auto-generate plan on mount if empty
+  // Auto-generate plan when favorites change or on mount
   useEffect(() => {
     const isPlanEmpty = DAYS.every(day => {
       const dayPlan = weeklyMealPlan[day];
       return !dayPlan.breakfast && !dayPlan.lunch && !dayPlan.dinner && !dayPlan.snacks;
     });
 
-    if (isPlanEmpty && !isGenerating && macros) {
+    const hasFavorites = selectedRecipes.length > 0;
+
+    if (isPlanEmpty && !isGenerating && macros && hasFavorites) {
       generateWeeklyMealPlan();
     }
-  }, []); // Only run once on mount
+  }, [selectedRecipes]); // Regenerate when favorites change
 
   const getRecipeById = (id: number): Recipe | undefined => {
     return RECIPES.find(r => r.id === id);
