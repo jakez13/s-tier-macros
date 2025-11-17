@@ -86,9 +86,6 @@ export const MealSelection = () => {
   };
 
   const handleSkip = () => {
-    if (currentStepCount < 1) {
-      return;
-    }
     if (isLastStep) {
       handleNext();
     } else {
@@ -210,7 +207,6 @@ export const MealSelection = () => {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button
             onClick={handleSkip}
-            disabled={!canProceed}
             variant="outline"
             size="lg"
             className="w-full sm:w-auto min-w-[150px] touch-manipulation"
