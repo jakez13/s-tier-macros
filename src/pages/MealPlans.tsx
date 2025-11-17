@@ -390,12 +390,12 @@ export const MealPlans = () => {
     if (!recipeId) {
       return (
         <Card 
-          className="p-6 border-dashed border-2 border-border/50 bg-muted/20 hover:bg-muted/30 transition-all duration-200 cursor-pointer"
+          className="p-4 sm:p-6 border-dashed border-2 border-border/50 bg-muted/20 hover:bg-muted/30 transition-all duration-200 cursor-pointer touch-manipulation"
           onClick={() => handleMealClick(selectedDay, mealType)}
         >
-          <div className="text-center space-y-2">
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{mealLabel}</p>
-            <p className="text-xs text-muted-foreground/70">Click to select a meal</p>
+          <div className="text-center space-y-1.5 sm:space-y-2">
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide">{mealLabel}</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground/70">Click to select a meal</p>
           </div>
         </Card>
       );
@@ -406,12 +406,12 @@ export const MealPlans = () => {
       // Recipe not found - show empty card instead of returning null
       return (
         <Card 
-          className="p-6 border-dashed border-2 border-border/50 bg-muted/20 hover:bg-muted/30 transition-all duration-200 cursor-pointer"
+          className="p-4 sm:p-6 border-dashed border-2 border-border/50 bg-muted/20 hover:bg-muted/30 transition-all duration-200 cursor-pointer touch-manipulation"
           onClick={() => handleMealClick(selectedDay, mealType)}
         >
-          <div className="text-center space-y-2">
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{mealLabel}</p>
-            <p className="text-xs text-muted-foreground/70">Click to select a meal</p>
+          <div className="text-center space-y-1.5 sm:space-y-2">
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide">{mealLabel}</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground/70">Click to select a meal</p>
           </div>
         </Card>
       );
@@ -426,62 +426,62 @@ export const MealPlans = () => {
 
     return (
       <Card 
-        className={`p-5 border bg-gradient-to-br ${mealColors[mealType]} hover:border-primary/30 transition-all duration-200 hover:shadow-lg group cursor-pointer`}
+        className={`p-4 sm:p-5 border bg-gradient-to-br ${mealColors[mealType]} hover:border-primary/30 transition-all duration-200 hover:shadow-lg group cursor-pointer`}
         onClick={() => handleMealClick(selectedDay, mealType)}
       >
-        <div className="space-y-4">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2 opacity-70">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] sm:text-[11px] uppercase tracking-wider text-muted-foreground font-bold mb-1 sm:mb-2 opacity-70">
                 {mealLabel}
               </p>
-              <h4 className="font-bold text-foreground text-base group-hover:text-primary transition-colors duration-200 leading-tight">
+              <h4 className="font-bold text-foreground text-sm sm:text-base group-hover:text-primary transition-colors duration-200 leading-tight line-clamp-2">
                 {recipe.name}
               </h4>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              className="h-7 px-2 text-[10px] sm:text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
               onClick={(e) => {
                 e.stopPropagation();
                 skipMeal(selectedDay, mealType);
               }}
             >
-              Skip this meal
+              Skip
             </Button>
           </div>
           
-          <div className="grid grid-cols-2 gap-3">
-            <div className="text-center p-3 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-              <div className="text-2xl font-bold" style={{ color: '#ef4444' }}>{Math.round(recipe.macros.calories)}</div>
-              <div className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mt-1">Calories</div>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+              <div className="text-xl sm:text-2xl font-bold" style={{ color: '#ef4444' }}>{Math.round(recipe.macros.calories)}</div>
+              <div className="text-[8px] sm:text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5 sm:mt-1">Calories</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-              <div className="text-2xl font-bold" style={{ color: '#3b82f6' }}>{Math.round(recipe.macros.protein)}g</div>
-              <div className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mt-1">Protein</div>
+            <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+              <div className="text-xl sm:text-2xl font-bold" style={{ color: '#3b82f6' }}>{Math.round(recipe.macros.protein)}g</div>
+              <div className="text-[8px] sm:text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5 sm:mt-1">Protein</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-              <div className="text-2xl font-bold" style={{ color: '#10b981' }}>{Math.round(recipe.macros.carbs)}g</div>
-              <div className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mt-1">Carbs</div>
+            <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+              <div className="text-xl sm:text-2xl font-bold" style={{ color: '#10b981' }}>{Math.round(recipe.macros.carbs)}g</div>
+              <div className="text-[8px] sm:text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5 sm:mt-1">Carbs</div>
             </div>
-            <div className="text-center p-3 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-              <div className="text-2xl font-bold" style={{ color: '#f59e0b' }}>{Math.round(recipe.macros.fats)}g</div>
-              <div className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mt-1">Fats</div>
+            <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+              <div className="text-xl sm:text-2xl font-bold" style={{ color: '#f59e0b' }}>{Math.round(recipe.macros.fats)}g</div>
+              <div className="text-[8px] sm:text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5 sm:mt-1">Fats</div>
             </div>
           </div>
 
           <Button
             variant="outline"
             size="sm"
-            className="w-full gap-2"
+            className="w-full gap-2 h-9 text-xs sm:text-sm"
             onClick={(e) => {
               e.stopPropagation();
               setViewingRecipe(recipe);
               setIsDetailsDialogOpen(true);
             }}
           >
-            <Eye className="h-4 w-4" />
+            <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             View Details
           </Button>
         </div>
@@ -739,48 +739,19 @@ export const MealPlans = () => {
                 </div>
               </div>
             </Card>
-                  <h2 className="text-lg font-bold text-foreground">Select Day</h2>
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-primary/10">
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="text-sm font-medium text-muted-foreground px-3">Week 1</span>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-primary/10">
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-7 gap-2">
-                  {DAYS.map(day => (
-                    <button
-                      key={day}
-                      onClick={() => setSelectedDay(day)}
-                      className={`p-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
-                        selectedDay === day
-                          ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg scale-105 border-2 border-primary'
-                          : 'bg-muted/40 text-muted-foreground hover:bg-muted/60 hover:scale-102 border-2 border-transparent'
-                      }`}
-                    >
-                      {DAY_LABELS[day]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </Card>
 
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-foreground">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground">
                   {DAY_FULL_LABELS[selectedDay]}'s Meal Plan
                 </h2>
-                <div className="flex gap-2">
+                <div className="flex gap-1.5 sm:gap-2">
                   {selectedDay === 'monday' && (
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={copyMondayToWeek}
-                      className="hover:bg-primary/10 hover:border-primary/30 transition-all duration-200"
+                      className="hover:bg-primary/10 hover:border-primary/30 transition-all duration-200 text-xs sm:text-sm h-8 sm:h-9"
                     >
                       Copy to Week
                     </Button>
@@ -789,15 +760,15 @@ export const MealPlans = () => {
                     variant="outline" 
                     size="sm"
                     onClick={() => clearDay(selectedDay)}
-                    className="hover:bg-destructive/10 hover:border-destructive/30 transition-all duration-200"
+                    className="hover:bg-destructive/10 hover:border-destructive/30 transition-all duration-200 text-xs sm:text-sm h-8 sm:h-9"
                   >
                     Clear Day
                   </Button>
                 </div>
               </div>
 
-              <div className="grid lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 grid sm:grid-cols-2 gap-4">
+              <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
+                <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {renderMealCard(weeklyMealPlan[selectedDay].breakfast, 'Breakfast', 'breakfast')}
                   {renderMealCard(weeklyMealPlan[selectedDay].lunch, 'Lunch', 'lunch')}
                   {renderMealCard(weeklyMealPlan[selectedDay].dinner, 'Dinner', 'dinner')}
