@@ -27,6 +27,23 @@ export interface MealPlan {
   snacks: number[];
 }
 
+export interface DailyMealPlan {
+  breakfast: number | null;
+  lunch: number | null;
+  dinner: number | null;
+  snacks: number | null;
+}
+
+export interface WeeklyMealPlan {
+  monday: DailyMealPlan;
+  tuesday: DailyMealPlan;
+  wednesday: DailyMealPlan;
+  thursday: DailyMealPlan;
+  friday: DailyMealPlan;
+  saturday: DailyMealPlan;
+  sunday: DailyMealPlan;
+}
+
 export interface SavedMealPlan {
   id: string;
   name: string;
@@ -44,6 +61,8 @@ interface AppContextType {
   toggleRecipeSelection: (recipeId: number) => void;
   currentMealPlan: MealPlan;
   setCurrentMealPlan: (plan: MealPlan) => void;
+  weeklyMealPlan: WeeklyMealPlan;
+  setWeeklyMealPlan: (plan: WeeklyMealPlan) => void;
   savedMealPlans: SavedMealPlan[];
   saveMealPlan: (name: string) => void;
   deleteSavedPlan: (id: string) => void;
@@ -123,6 +142,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   });
 
+  const [weeklyMealPlan, setWeeklyMealPlanState] = useState<WeeklyMealPlan>(() => {
+    try {
+      const saved = localStorage.getItem('weeklyMealPlan');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error('Failed to parse weekly meal plan:', e);
+    }
+    return {
+      monday: { breakfast: null, lunch: null, dinner: null, snacks: null },
+      tuesday: { breakfast: null, lunch: null, dinner: null, snacks: null },
+      wednesday: { breakfast: null, lunch: null, dinner: null, snacks: null },
+      thursday: { breakfast: null, lunch: null, dinner: null, snacks: null },
+      friday: { breakfast: null, lunch: null, dinner: null, snacks: null },
+      saturday: { breakfast: null, lunch: null, dinner: null, snacks: null },
+      sunday: { breakfast: null, lunch: null, dinner: null, snacks: null },
+    };
+  });
+
   const isOnboarded = !!userProfile && !!macros;
 
   const setUserProfile = (profile: UserProfile) => {
@@ -150,6 +189,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const setCurrentMealPlan = (plan: MealPlan) => {
     setCurrentMealPlanState(plan);
     localStorage.setItem('currentMealPlan', JSON.stringify(plan));
+  };
+
+  const setWeeklyMealPlan = (plan: WeeklyMealPlan) => {
+    setWeeklyMealPlanState(plan);
+    localStorage.setItem('weeklyMealPlan', JSON.stringify(plan));
   };
 
   const addRecipeToMealPlan = (recipeId: number, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => {
@@ -224,6 +268,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         toggleRecipeSelection,
         currentMealPlan,
         setCurrentMealPlan,
+        weeklyMealPlan,
+        setWeeklyMealPlan,
         savedMealPlans,
         saveMealPlan,
         deleteSavedPlan,
