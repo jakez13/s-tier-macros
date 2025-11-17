@@ -73,6 +73,8 @@ interface AppContextType {
   favoriteRecipes: number[];
   toggleFavorite: (recipeId: number) => void;
   isOnboarded: boolean;
+  mealsSelected: boolean;
+  setMealsSelected: (selected: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -160,6 +162,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       saturday: { breakfast: null, lunch: null, dinner: null, snacks: null },
       sunday: { breakfast: null, lunch: null, dinner: null, snacks: null },
     };
+  });
+
+  const [mealsSelected, setMealsSelectedState] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('mealsSelected');
+      return saved ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
   });
 
   const isOnboarded = !!userProfile && !!macros;
@@ -256,6 +267,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('favoriteRecipes', JSON.stringify(updated));
   };
 
+  const setMealsSelected = (selected: boolean) => {
+    setMealsSelectedState(selected);
+    localStorage.setItem('mealsSelected', JSON.stringify(selected));
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -280,6 +296,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         favoriteRecipes,
         toggleFavorite,
         isOnboarded,
+        mealsSelected,
+        setMealsSelected,
       }}
     >
       {children}
