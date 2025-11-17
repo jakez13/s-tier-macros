@@ -390,7 +390,20 @@ export const MealPlans = () => {
     }
 
     const recipe = getRecipeById(recipeId);
-    if (!recipe) return null;
+    if (!recipe) {
+      // Recipe not found - show empty card instead of returning null
+      return (
+        <Card 
+          className="p-6 border-dashed border-2 border-border/50 bg-muted/20 hover:bg-muted/30 transition-all duration-200 cursor-pointer"
+          onClick={() => handleMealClick(selectedDay, mealType)}
+        >
+          <div className="text-center space-y-2">
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{mealLabel}</p>
+            <p className="text-xs text-muted-foreground/70">Click to select a meal</p>
+          </div>
+        </Card>
+      );
+    }
 
     const mealColors = {
       breakfast: 'from-orange-500/10 to-orange-500/5 border-orange-500/20',
