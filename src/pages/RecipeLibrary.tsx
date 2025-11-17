@@ -1,38 +1,60 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/contexts/AppContext';
 import { RECIPES, Recipe } from '@/data/recipesData';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Heart, Search, Clock, Plus } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Clock, CheckCircle2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const RecipeLibrary = () => {
-  const { macros, favoriteRecipes, toggleFavorite, addRecipeToMealPlan } = useApp();
-  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+  const { selectedRecipes, toggleRecipeSelection } = useApp();
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('all');
 
-  const filteredRecipes = useMemo(() => {
-    return RECIPES.filter(recipe => {
-      // Search filter
-      const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        recipe.ingredients.some(ing => ing.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  // Group recipes by meal type
+  const recipesByMealType = useMemo(() => {
+    return {
+      breakfast: RECIPES.filter(r => r.mealType === 'breakfast'),
+      lunch: RECIPES.filter(r => r.mealType === 'lunch'),
+      dinner: RECIPES.filter(r => r.mealType === 'dinner'),
+      snacks: RECIPES.filter(r => r.mealType === 'snack'),
+    };
+  }, []);
 
-      // Tab filter
-      let matchesTab = true;
-      if (activeTab === 'breakfast') matchesTab = recipe.mealType === 'breakfast';
-      if (activeTab === 'lunch') matchesTab = recipe.mealType === 'lunch';
-      if (activeTab === 'dinner') matchesTab = recipe.mealType === 'dinner';
-      if (activeTab === 'snacks') matchesTab = recipe.mealType === 'snack';
-      
+  // Count selected recipes per meal type
+  const selectedCounts = useMemo(() => {
+    const counts = {
+      breakfast: 0,
+      lunch: 0,
+      dinner: 0,
+      snacks: 0,
+    };
 
-      return matchesSearch && matchesTab;
+    selectedRecipes.forEach(id => {
+      const recipe = RECIPES.find(r => r.id === id);
+      if (recipe) {
+        if (recipe.mealType === 'snack') {
+          counts.snacks++;
+        } else {
+          counts[recipe.mealType as keyof typeof counts]++;
+        }
+      }
     });
-  }, [searchQuery, activeTab, favoriteRecipes]);
+
+    return counts;
+  }, [selectedRecipes]);
+
+  const canContinue = 
+    selectedCounts.breakfast >= 3 && 
+    selectedCounts.lunch >= 3 && 
+    selectedCounts.dinner >= 3 && 
+    selectedCounts.snacks >= 3;
 
   const getMealTypeBadge = (type: string) => {
     const colors = {
@@ -44,253 +66,222 @@ export const RecipeLibrary = () => {
     return colors[type as keyof typeof colors] || 'bg-gray-500';
   };
 
-  const handleAddToMealPlan = (recipe: Recipe) => {
-    const mealTypeMap: { [key: string]: 'breakfast' | 'lunch' | 'dinner' | 'snacks' } = {
-      'breakfast': 'breakfast',
-      'lunch': 'lunch',
-      'dinner': 'dinner',
-      'snack': 'snacks'
-    };
-    const mealType = mealTypeMap[recipe.mealType];
-    addRecipeToMealPlan(recipe.id, mealType);
+  const handleToggleRecipe = (recipe: Recipe) => {
+    const isSelected = selectedRecipes.includes(recipe.id);
+    toggleRecipeSelection(recipe.id);
     toast({
-      title: "Added to meal plan!",
-      description: `${recipe.name} has been added to your ${mealType}.`
+      title: isSelected ? "Removed from favorites!" : "Added to favorites!",
+      description: isSelected 
+        ? `${recipe.name} removed from your selections.`
+        : `${recipe.name} added to your favorites.`
     });
   };
 
-  return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="max-w-4xl mx-auto p-4">
-        {/* Macro Targets Banner */}
-        {macros && (
-          <Card className="p-4 mb-6 bg-secondary/50 border-border">
-            <h2 className="text-sm font-medium text-muted-foreground mb-2">YOUR TARGETS</h2>
-            <div className="flex justify-between items-center">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-primary">{macros.calories}</p>
-                <p className="text-xs text-muted-foreground">calories</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">{macros.protein}g</p>
-                <p className="text-xs text-muted-foreground">protein</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">{macros.carbs}g</p>
-                <p className="text-xs text-muted-foreground">carbs</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">{macros.fats}g</p>
-                <p className="text-xs text-muted-foreground">fats</p>
-              </div>
-            </div>
-          </Card>
-        )}
+  const handleContinue = () => {
+    navigate('/meal-plans');
+  };
 
-        <h1 className="text-3xl font-bold text-foreground mb-6">Recipe Library</h1>
+  const getTotalTime = (prepTime: string, cookTime: string) => {
+    const prep = parseInt(prepTime);
+    const cook = parseInt(cookTime);
+    return prep + cook;
+  };
 
-        {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-          <Input
-            type="text"
-            placeholder="Search recipes or ingredients..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-background border-border"
-          />
+  const getMainIngredients = (recipe: Recipe) => {
+    return recipe.ingredients.slice(0, 3).map(ing => ing.name).join(', ');
+  };
+
+  const renderMealSection = (
+    title: string, 
+    recipes: Recipe[], 
+    mealTypeKey: keyof typeof selectedCounts
+  ) => {
+    const count = selectedCounts[mealTypeKey];
+    const isValid = count >= 3;
+
+    return (
+      <div className="mb-8">
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold text-foreground mb-1">{title}</h2>
+          <p className="text-sm text-muted-foreground mb-2">Select at least 3</p>
+          <div className={`flex items-center gap-2 text-sm font-medium ${isValid ? 'text-green-500' : 'text-red-500'}`}>
+            {isValid && <CheckCircle2 size={16} />}
+            <span>Selected: {count}/3 minimum</span>
+          </div>
         </div>
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="grid grid-cols-5 w-full bg-secondary">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="breakfast">Breakfast</TabsTrigger>
-            <TabsTrigger value="lunch">Lunch</TabsTrigger>
-            <TabsTrigger value="dinner">Dinner</TabsTrigger>
-            <TabsTrigger value="snacks">Snacks</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* Recipes Grid */}
-        {filteredRecipes.length === 0 ? (
-          <Card className="p-8 text-center bg-secondary/50 border-border">
-            <p className="text-xl text-foreground mb-2">⚠️ No recipes found</p>
-            <p className="text-muted-foreground mb-4">
-              We couldn't find recipes matching your preferences.
-            </p>
-            <Button variant="outline" onClick={() => window.location.href = '/food-preferences'}>
-              Edit Preferences
-            </Button>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredRecipes.map(recipe => (
-              <Card key={recipe.id} className="p-4 bg-secondary/50 border-border hover:border-primary/50 transition-colors">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground mb-1">{recipe.name}</h3>
-                    <Badge className={`${getMealTypeBadge(recipe.mealType)} text-white`}>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {recipes.map(recipe => {
+            const isSelected = selectedRecipes.includes(recipe.id);
+            return (
+              <Card 
+                key={recipe.id} 
+                className={`p-4 bg-secondary/50 border-border transition-all ${
+                  isSelected ? 'border-primary ring-2 ring-primary/20' : 'hover:border-primary/50'
+                }`}
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => handleToggleRecipe(recipe)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-foreground mb-1">{recipe.name}</h3>
+                    <Badge className={`${getMealTypeBadge(recipe.mealType)} text-white mb-2`}>
                       {recipe.mealType.charAt(0).toUpperCase() + recipe.mealType.slice(1)}
                     </Badge>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => toggleFavorite(recipe.id)}
-                    className="text-muted-foreground hover:text-primary"
-                  >
-                    <Heart 
-                      size={20} 
-                      fill={favoriteRecipes.includes(recipe.id) ? 'currentColor' : 'none'}
-                    />
-                  </Button>
-                </div>
-
-                {/* Macros */}
-                <div className="bg-background/50 p-3 rounded mb-3">
-                  <div className="grid grid-cols-3 gap-2 text-center mb-2">
-                    <div>
-                      <p className="text-lg font-bold text-foreground">P: {recipe.macros.protein}g</p>
-                    </div>
-                    <div>
-                      <p className="text-lg font-bold text-foreground">C: {recipe.macros.carbs}g</p>
-                    </div>
-                    <div>
-                      <p className="text-lg font-bold text-foreground">F: {recipe.macros.fats}g</p>
-                    </div>
-                  </div>
-                  <p className="text-center text-xl font-bold text-primary">
-                    {recipe.macros.calories} calories
-                  </p>
-                </div>
-
-                {/* Time */}
-                <div className="flex items-center gap-4 text-muted-foreground text-sm mb-3">
-                  <div className="flex items-center gap-1">
-                    <Clock size={16} />
-                    <span>Prep: {recipe.prepTime}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock size={16} />
-                    <span>Cook: {recipe.cookTime}</span>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      <span className="font-medium">Ingredients:</span> {getMainIngredients(recipe)}
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex justify-between items-center mb-3 text-sm">
+                  <div className="flex gap-4 text-muted-foreground">
+                    <span>P: {recipe.macros.protein}g</span>
+                    <span>C: {recipe.macros.carbs}g</span>
+                    <span>F: {recipe.macros.fats}g</span>
+                  </div>
+                  <span className="font-semibold text-foreground">{recipe.macros.calories} cal</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Clock size={14} />
+                    <span>{getTotalTime(recipe.prepTime, recipe.cookTime)} min total</span>
+                  </div>
                   <Button 
-                    onClick={() => handleAddToMealPlan(recipe)}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add to Plan
-                  </Button>
-                  <Button 
+                    variant="outline" 
+                    size="sm"
                     onClick={() => setSelectedRecipe(recipe)}
-                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
-                    View Recipe
+                    View Details
                   </Button>
                 </div>
               </Card>
-            ))}
+            );
+          })}
+        </div>
+        
+        <div className="border-t border-border"></div>
+      </div>
+    );
+  };
+
+  return (
+    <ScrollArea className="h-screen bg-background">
+      <div className="min-h-screen pb-32 px-4 pt-6">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold text-foreground mb-2">PICK YOUR FAVORITE RECIPES</h1>
+          <p className="text-muted-foreground mb-8">
+            Pick your favorite recipes for each meal type. Choose at least 3 per category.<br />
+            These will be your go-to meals. You can always add more or make changes later.
+          </p>
+
+          {renderMealSection('BREAKFAST RECIPES', recipesByMealType.breakfast, 'breakfast')}
+          {renderMealSection('LUNCH RECIPES', recipesByMealType.lunch, 'lunch')}
+          {renderMealSection('DINNER RECIPES', recipesByMealType.dinner, 'dinner')}
+          {renderMealSection('SNACKS & SHAKES', recipesByMealType.snacks, 'snacks')}
+
+          <div className="fixed bottom-20 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t border-border">
+            <div className="max-w-4xl mx-auto">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="w-full">
+                      <Button 
+                        className="w-full" 
+                        size="lg"
+                        onClick={handleContinue}
+                        disabled={!canContinue}
+                      >
+                        Continue to Meal Plan
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  {!canContinue && (
+                    <TooltipContent>
+                      <p>Please select at least 3 recipes in each category</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Recipe Modal */}
-        <Dialog open={!!selectedRecipe} onOpenChange={() => setSelectedRecipe(null)}>
-          <DialogContent className="max-w-2xl bg-secondary border-border max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-foreground">
-                {selectedRecipe?.name}
-              </DialogTitle>
-            </DialogHeader>
-            
-            {selectedRecipe && (
-              <div className="space-y-6">
-                {/* Macros */}
-                <div className="bg-background/50 p-4 rounded">
-                  <div className="grid grid-cols-4 gap-4 text-center">
-                    <div>
-                      <p className="text-2xl font-bold text-primary">{selectedRecipe.macros.calories}</p>
-                      <p className="text-xs text-muted-foreground">calories</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">{selectedRecipe.macros.protein}g</p>
-                      <p className="text-xs text-muted-foreground">protein</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">{selectedRecipe.macros.carbs}g</p>
-                      <p className="text-xs text-muted-foreground">carbs</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">{selectedRecipe.macros.fats}g</p>
-                      <p className="text-xs text-muted-foreground">fats</p>
-                    </div>
-                  </div>
-                  <p className="text-center text-sm text-muted-foreground mt-2">
-                    {selectedRecipe.servingSize}
-                  </p>
-                </div>
+      {/* Recipe Details Dialog */}
+      <Dialog open={!!selectedRecipe} onOpenChange={() => setSelectedRecipe(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          {selectedRecipe && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl">{selectedRecipe.name}</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <Badge className={`${getMealTypeBadge(selectedRecipe.mealType)} text-white`}>
+                  {selectedRecipe.mealType.charAt(0).toUpperCase() + selectedRecipe.mealType.slice(1)}
+                </Badge>
 
-                {/* Time */}
-                <div className="flex items-center gap-6 text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Clock size={18} />
-                    <span>Prep: {selectedRecipe.prepTime}</span>
+                <div className="grid grid-cols-2 gap-4 p-4 bg-secondary/50 rounded-lg">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Prep Time</p>
+                    <p className="text-lg font-semibold">{selectedRecipe.prepTime}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock size={18} />
-                    <span>Cook: {selectedRecipe.cookTime}</span>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Cook Time</p>
+                    <p className="text-lg font-semibold">{selectedRecipe.cookTime}</p>
                   </div>
                 </div>
 
-                {/* Ingredients */}
+                <div className="grid grid-cols-4 gap-2 p-4 bg-secondary/50 rounded-lg">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-primary">{selectedRecipe.macros.calories}</p>
+                    <p className="text-xs text-muted-foreground">calories</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{selectedRecipe.macros.protein}g</p>
+                    <p className="text-xs text-muted-foreground">protein</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{selectedRecipe.macros.carbs}g</p>
+                    <p className="text-xs text-muted-foreground">carbs</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{selectedRecipe.macros.fats}g</p>
+                    <p className="text-xs text-muted-foreground">fats</p>
+                  </div>
+                </div>
+
                 <div>
-                  <h3 className="text-xl font-bold text-foreground mb-3">Ingredients</h3>
-                  <ul className="space-y-2">
+                  <h3 className="text-lg font-semibold mb-2">Ingredients</h3>
+                  <ul className="space-y-1">
                     {selectedRecipe.ingredients.map((ing, idx) => (
-                      <li key={idx} className="text-foreground flex items-start">
-                        <span className="text-primary mr-2">•</span>
-                        <span>{ing.amount} {ing.name}</span>
+                      <li key={idx} className="text-muted-foreground">
+                        • {ing.amount} {ing.name}
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                {/* Instructions */}
                 <div>
-                  <h3 className="text-xl font-bold text-foreground mb-3">Instructions</h3>
-                  <ol className="space-y-3">
+                  <h3 className="text-lg font-semibold mb-2">Instructions</h3>
+                  <ol className="space-y-2">
                     {selectedRecipe.instructions.map((step, idx) => (
-                      <li key={idx} className="text-foreground flex">
-                        <span className="text-primary font-bold mr-3">{idx + 1}.</span>
-                        <span>{step}</span>
+                      <li key={idx} className="text-muted-foreground">
+                        {idx + 1}. {step}
                       </li>
                     ))}
                   </ol>
                 </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => toggleFavorite(selectedRecipe.id)}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    <Heart 
-                      size={18} 
-                      className="mr-2"
-                      fill={favoriteRecipes.includes(selectedRecipe.id) ? 'currentColor' : 'none'}
-                    />
-                    {favoriteRecipes.includes(selectedRecipe.id) ? 'Remove from Favorites' : 'Save to Favorites'}
-                  </Button>
-                </div>
               </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
-    </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </ScrollArea>
   );
 };
