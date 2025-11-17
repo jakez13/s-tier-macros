@@ -411,19 +411,17 @@ export const MealPlans = () => {
                 {recipe.name}
               </h4>
             </div>
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  skipMeal(selectedDay, mealType);
-                }}
-              >
-                <RefreshCw className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                skipMeal(selectedDay, mealType);
+              }}
+            >
+              Skip
+            </Button>
           </div>
           
           <div className="grid grid-cols-2 gap-3">
