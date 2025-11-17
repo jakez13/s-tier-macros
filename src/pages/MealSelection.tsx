@@ -82,6 +82,17 @@ export const MealSelection = () => {
     }
   };
 
+  const handleSkip = () => {
+    if (currentStepCount < 1) {
+      return;
+    }
+    if (isLastStep) {
+      handleNext();
+    } else {
+      setCurrentStep(steps[currentStepIndex + 1]);
+    }
+  };
+
   const handleLoadingComplete = () => {
     navigate('/meal-plans');
   };
@@ -192,13 +203,22 @@ export const MealSelection = () => {
           })}
         </div>
 
-        {/* Action Button */}
-        <div className="flex justify-center">
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Button
+            onClick={handleSkip}
+            disabled={!canProceed}
+            variant="outline"
+            size="lg"
+            className="w-full sm:w-auto min-w-[150px] touch-manipulation"
+          >
+            Skip
+          </Button>
           <Button
             onClick={handleNext}
             disabled={!canProceed}
             size="lg"
-            className="w-full md:w-auto min-w-[200px] touch-manipulation"
+            className="w-full sm:w-auto min-w-[200px] touch-manipulation"
           >
             {isLastStep ? 'Create Plan' : 'Next'}
           </Button>
