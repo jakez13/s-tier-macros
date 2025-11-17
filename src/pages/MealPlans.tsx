@@ -5,10 +5,11 @@ import { RECIPES, Recipe } from '@/data/recipesData';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
-import { ChevronLeft, ChevronRight, Settings, User, Activity, TrendingUp, Target, Sparkles, Check, Loader2, Circle, RefreshCw, Clock, ChefHat } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, User, Activity, TrendingUp, Target, Sparkles, Check, Loader2, Circle, RefreshCw, Clock, ChefHat, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { DailyMealPlan } from '@/contexts/AppContext';
 import { AiMealDialog } from '@/components/AiMealDialog';
+import { RecipeDetailsDialog } from '@/components/RecipeDetailsDialog';
 
 type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
@@ -45,6 +46,8 @@ export const MealPlans = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [viewingRecipe, setViewingRecipe] = useState<Recipe | null>(null);
   const [customRecipes, setCustomRecipes] = useState<Recipe[]>([]);
   const [editingMeal, setEditingMeal] = useState<{
     day: DayOfWeek;
@@ -442,6 +445,20 @@ export const MealPlans = () => {
               <div className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mt-1">Fats</div>
             </div>
           </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full gap-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              setViewingRecipe(recipe);
+              setIsDetailsDialogOpen(true);
+            }}
+          >
+            <Eye className="h-4 w-4" />
+            View Details
+          </Button>
         </div>
       </Card>
     );
@@ -893,6 +910,12 @@ export const MealPlans = () => {
         open={isAiDialogOpen}
         onOpenChange={setIsAiDialogOpen}
         onMealCreated={handleAiMealCreated}
+      />
+
+      <RecipeDetailsDialog
+        recipe={viewingRecipe}
+        open={isDetailsDialogOpen}
+        onOpenChange={setIsDetailsDialogOpen}
       />
     </div>
   );
