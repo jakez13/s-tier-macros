@@ -188,13 +188,13 @@ export const MacroCalculator = () => {
             </div>
           )}
 
-          {weight && (
+          {isFormValid && (
             <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">Calorie Maintenance Estimate:</p>
-              <p className="text-2xl font-bold text-primary">{Math.round(parseFloat(weight) * 15)} cal/day</p>
+              <p className="text-2xl font-bold text-primary">{calculateMacros().maintenance} cal/day</p>
               {goal !== 'maintain' && (
                 <p className="text-sm text-muted-foreground mt-2">
-                  Target: {Math.round(parseFloat(weight) * 15 + (goal === 'bulk' ? calorieAdjustment : -calorieAdjustment))} cal/day
+                  Target: {calculateMacros().calories} cal/day
                 </p>
               )}
             </div>
