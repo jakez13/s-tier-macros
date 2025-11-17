@@ -59,8 +59,12 @@ export const MealSelection = () => {
 
   const handleNext = () => {
     if (isLastStep) {
-      clearMealPlan();
+      // Show loading screen immediately
+      setShowLoading(true);
+      
+      // Populate meal plan in background
       setTimeout(() => {
+        clearMealPlan();
         selectedRecipes.forEach(id => {
           const recipe = RECIPES.find(r => r.id === id);
           if (recipe) {
@@ -75,7 +79,6 @@ export const MealSelection = () => {
           }
         });
         setMealsSelected(true);
-        setShowLoading(true);
       }, 100);
     } else {
       setCurrentStep(steps[currentStepIndex + 1]);
