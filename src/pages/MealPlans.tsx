@@ -4,8 +4,8 @@ import { useApp } from '@/contexts/AppContext';
 import { RECIPES, Recipe } from '@/data/recipesData';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
-import { ChevronLeft, ChevronRight, Settings, User, Activity, TrendingUp, Target, Sparkles, Check, Loader2, Circle } from 'lucide-react';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
+import { ChevronLeft, ChevronRight, Settings, User, Activity, TrendingUp, Target, Sparkles, Check, Loader2, Circle, RefreshCw, Clock, ChefHat } from 'lucide-react';
 import { toast } from 'sonner';
 import { DailyMealPlan } from '@/contexts/AppContext';
 
@@ -42,6 +42,12 @@ export const MealPlans = () => {
   const { macros, weeklyMealPlan, setWeeklyMealPlan, selectedRecipes, userProfile } = useApp();
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('monday');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editingMeal, setEditingMeal] = useState<{
+    day: DayOfWeek;
+    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks';
+  } | null>(null);
+  const [mealFilter, setMealFilter] = useState<'breakfast' | 'lunch' | 'dinner' | 'snacks' | 'all'>('all');
   const [loadingSteps, setLoadingSteps] = useState<LoadingStep[]>([
     { label: 'Analyzing your favorite recipes', status: 'pending' },
     { label: 'Finding optimal macro combinations', status: 'pending' },
@@ -237,6 +243,29 @@ export const MealPlans = () => {
     toast.success('Monday plan copied to entire week');
   };
 
+  const handleMealClick = (day: DayOfWeek, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => {
+    setEditingMeal({ day, mealType });
+    setMealFilter(mealType);
+    setIsDrawerOpen(true);
+  };
+
+  const handleSelectRecipe = (recipeId: number) => {
+    if (!editingMeal) return;
+    
+    const newPlan = { ...weeklyMealPlan };
+    newPlan[editingMeal.day][editingMeal.mealType] = recipeId;
+    setWeeklyMealPlan(newPlan);
+    setIsDrawerOpen(false);
+    toast.success('Meal updated successfully');
+  };
+
+  const getFilteredRecipes = () => {
+    if (mealFilter === 'all') {
+      return RECIPES;
+    }
+    return RECIPES.filter(r => r.mealType === mealFilter);
+  };
+
   const renderLoadingOverlay = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-md">
       <Card className="w-full max-w-md p-8 bg-gradient-to-br from-card via-card to-card/80 shadow-2xl border-2 border-primary/20">
@@ -291,10 +320,13 @@ export const MealPlans = () => {
   const renderMealCard = (recipeId: number | null, mealLabel: string, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => {
     if (!recipeId) {
       return (
-        <Card className="p-6 border-dashed border-2 border-border/50 bg-muted/20 hover:bg-muted/30 transition-all duration-200">
+        <Card 
+          className="p-6 border-dashed border-2 border-border/50 bg-muted/20 hover:bg-muted/30 transition-all duration-200 cursor-pointer"
+          onClick={() => handleMealClick(selectedDay, mealType)}
+        >
           <div className="text-center space-y-2">
             <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{mealLabel}</p>
-            <p className="text-xs text-muted-foreground/70">No meal selected</p>
+            <p className="text-xs text-muted-foreground/70">Click to select a meal</p>
           </div>
         </Card>
       );
@@ -311,15 +343,21 @@ export const MealPlans = () => {
     };
 
     return (
-      <Card className={`p-5 border bg-gradient-to-br ${mealColors[mealType]} hover:border-primary/30 transition-all duration-200 hover:shadow-lg group`}>
+      <Card 
+        className={`p-5 border bg-gradient-to-br ${mealColors[mealType]} hover:border-primary/30 transition-all duration-200 hover:shadow-lg group cursor-pointer`}
+        onClick={() => handleMealClick(selectedDay, mealType)}
+      >
         <div className="space-y-4">
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2 opacity-70">
-              {mealLabel}
-            </p>
-            <h4 className="font-bold text-foreground text-base group-hover:text-primary transition-colors duration-200 leading-tight">
-              {recipe.name}
-            </h4>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2 opacity-70">
+                {mealLabel}
+              </p>
+              <h4 className="font-bold text-foreground text-base group-hover:text-primary transition-colors duration-200 leading-tight">
+                {recipe.name}
+              </h4>
+            </div>
+            <RefreshCw className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
           </div>
           
           <div className="grid grid-cols-2 gap-3">
@@ -542,6 +580,105 @@ export const MealPlans = () => {
             </div>
         </div>
       </div>
+
+      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <DrawerContent className="max-h-[90vh]">
+          <DrawerHeader>
+            <DrawerTitle>Select a Meal</DrawerTitle>
+            <DrawerDescription>
+              Choose from available recipes or browse all categories
+            </DrawerDescription>
+          </DrawerHeader>
+          
+          <div className="px-4 pb-6 overflow-y-auto">
+            <div className="flex gap-2 mb-6 flex-wrap">
+              <Button
+                variant={mealFilter === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMealFilter('all')}
+              >
+                All Categories
+              </Button>
+              <Button
+                variant={mealFilter === 'breakfast' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMealFilter('breakfast')}
+              >
+                Breakfast
+              </Button>
+              <Button
+                variant={mealFilter === 'lunch' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMealFilter('lunch')}
+              >
+                Lunch
+              </Button>
+              <Button
+                variant={mealFilter === 'dinner' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMealFilter('dinner')}
+              >
+                Dinner
+              </Button>
+              <Button
+                variant={mealFilter === 'snacks' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMealFilter('snacks')}
+              >
+                Snacks
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {getFilteredRecipes().map(recipe => (
+                <Card
+                  key={recipe.id}
+                  className="p-4 cursor-pointer hover:border-primary/50 transition-all duration-200 hover:shadow-lg"
+                  onClick={() => handleSelectRecipe(recipe.id)}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <h4 className="font-bold text-foreground text-sm leading-tight mb-1">
+                          {recipe.name}
+                        </h4>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {recipe.mealType}
+                        </p>
+                      </div>
+                      <ChefHat className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{recipe.prepTime + recipe.cookTime} min</span>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-2">
+                      <div className="text-center p-2 rounded bg-background/60 border border-border/30">
+                        <div className="text-sm font-bold text-foreground">{Math.round(recipe.macros.calories)}</div>
+                        <div className="text-[8px] text-muted-foreground uppercase">Cal</div>
+                      </div>
+                      <div className="text-center p-2 rounded bg-background/60 border border-border/30">
+                        <div className="text-sm font-bold text-foreground">{Math.round(recipe.macros.protein)}g</div>
+                        <div className="text-[8px] text-muted-foreground uppercase">Pro</div>
+                      </div>
+                      <div className="text-center p-2 rounded bg-background/60 border border-border/30">
+                        <div className="text-sm font-bold text-foreground">{Math.round(recipe.macros.carbs)}g</div>
+                        <div className="text-[8px] text-muted-foreground uppercase">Carb</div>
+                      </div>
+                      <div className="text-center p-2 rounded bg-background/60 border border-border/30">
+                        <div className="text-sm font-bold text-foreground">{Math.round(recipe.macros.fats)}g</div>
+                        <div className="text-[8px] text-muted-foreground uppercase">Fat</div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
