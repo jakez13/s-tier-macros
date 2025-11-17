@@ -105,7 +105,7 @@ export const MealPlans = () => {
     const newRecipe: Recipe = {
       id: newId,
       name: meal.name,
-      mealType: meal.mealType,
+      mealType: meal.mealType, // Keep as 'snack' from AI
       ingredients: [], // AI meals don't need detailed ingredients
       servingSize: "1 serving",
       macros: {
@@ -130,6 +130,16 @@ export const MealPlans = () => {
     toast.success(`${meal.name} added to your recipes!`, {
       description: "You can now use it in your meal plans"
     });
+  };
+
+  const getFilteredRecipes = () => {
+    const allRecipes = [...RECIPES, ...customRecipes];
+    if (mealFilter === 'all') {
+      return allRecipes;
+    }
+    // Handle both 'snack' and 'snacks' to match the filter
+    const filterType = mealFilter === 'snacks' ? 'snack' : mealFilter;
+    return allRecipes.filter(r => r.mealType === filterType);
   };
 
   const calculateDayTotals = (day: DailyMealPlan) => {
@@ -323,14 +333,6 @@ export const MealPlans = () => {
     setWeeklyMealPlan(newPlan);
     setIsDrawerOpen(false);
     toast.success('Meal updated successfully');
-  };
-
-  const getFilteredRecipes = () => {
-    const allRecipes = [...RECIPES, ...customRecipes];
-    if (mealFilter === 'all') {
-      return allRecipes;
-    }
-    return allRecipes.filter(r => r.mealType === mealFilter);
   };
 
   const renderLoadingOverlay = () => (
