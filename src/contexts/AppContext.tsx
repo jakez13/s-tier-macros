@@ -75,6 +75,7 @@ interface AppContextType {
   isOnboarded: boolean;
   mealsSelected: boolean;
   setMealsSelected: (selected: boolean) => void;
+  resetAllData: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -272,6 +273,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('mealsSelected', JSON.stringify(selected));
   };
 
+  const resetAllData = () => {
+    localStorage.clear();
+    window.location.href = '/';
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -298,6 +304,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         isOnboarded,
         mealsSelected,
         setMealsSelected,
+        resetAllData,
       }}
     >
       {children}
