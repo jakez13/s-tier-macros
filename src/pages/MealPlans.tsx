@@ -697,9 +697,9 @@ export const MealPlans = () => {
       <div className="container max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">Meal Plans</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">Your Weekly Meal Plans</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              AI-powered weekly meal planning optimized for your goals
+              Weekly meal planning optimized for your goals
             </p>
           </div>
           <Button 
