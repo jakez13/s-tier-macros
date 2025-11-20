@@ -72,8 +72,10 @@ export const MealPlans = () => {
     });
 
     const hasFavorites = selectedRecipes.length > 0;
+    const isDurdenActive = localStorage.getItem('durdenRoutineActive') === 'true';
 
-    if (isPlanEmpty && !isGenerating && macros && hasFavorites) {
+    // Don't auto-generate if Durden's routine is active or plan is not empty
+    if (isPlanEmpty && !isGenerating && macros && hasFavorites && !isDurdenActive) {
       generateWeeklyMealPlan();
     }
   }, [selectedRecipes]); // Regenerate when favorites change
@@ -162,6 +164,9 @@ export const MealPlans = () => {
       return;
     }
 
+    // Clear Durden routine flag when generating new plan
+    localStorage.removeItem('durdenRoutineActive');
+    
     setIsGenerating(true);
     
     const steps = [
@@ -294,6 +299,7 @@ export const MealPlans = () => {
   };
 
   const clearDay = (day: DayOfWeek) => {
+    localStorage.removeItem('durdenRoutineActive');
     const newPlan = { ...weeklyMealPlan };
     newPlan[day] = { breakfast: null, lunch: null, dinner: null, snacks: null };
     setWeeklyMealPlan(newPlan);
@@ -301,6 +307,7 @@ export const MealPlans = () => {
   };
 
   const copyMondayToWeek = () => {
+    localStorage.removeItem('durdenRoutineActive');
     const mondayPlan = weeklyMealPlan.monday;
     const newPlan = { ...weeklyMealPlan };
     DAYS.forEach(day => {
@@ -313,6 +320,7 @@ export const MealPlans = () => {
   };
 
   const skipMeal = (day: DayOfWeek, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks') => {
+    localStorage.removeItem('durdenRoutineActive');
     const newPlan = { ...weeklyMealPlan };
     newPlan[day][mealType] = null;
     setWeeklyMealPlan(newPlan);
@@ -328,6 +336,7 @@ export const MealPlans = () => {
   const handleSelectRecipe = (recipeId: number) => {
     if (!editingMeal) return;
     
+    localStorage.removeItem('durdenRoutineActive');
     const newPlan = { ...weeklyMealPlan };
     newPlan[editingMeal.day][editingMeal.mealType] = recipeId;
     setWeeklyMealPlan(newPlan);

@@ -305,6 +305,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       snacks: [snackId]
     };
 
+    // Set flag to prevent auto-regeneration
+    localStorage.setItem('durdenRoutineActive', 'true');
+    
     setWeeklyMealPlan(durdenWeeklyPlan);
     setCurrentMealPlan(durdenCurrentPlan);
     setMealsSelected(true);
