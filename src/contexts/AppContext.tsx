@@ -280,14 +280,33 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const loadDurdenRoutine = () => {
-    // Durden's Daily Meal Structure
-    const durdenPlan: MealPlan = {
-      breakfast: [33], // Durden's Breakfast: Eggs, Avocado & Banana
-      lunch: [31, 9], // Ribeye with White Rice, Chicken Thighs with Rice
-      dinner: [32, 34], // Olive Oil Tuna Bowl, Pan-Seared Salmon
-      snacks: [35] // Bedtime Protein Shake
+    // Durden's recipes
+    const breakfastId = 33; // Durden's Breakfast: Eggs, Avocado & Banana
+    const lunchOptions = [31, 9]; // Ribeye with White Rice, Chicken Thighs with Rice
+    const dinnerOptions = [32, 34]; // Olive Oil Tuna Bowl, Pan-Seared Salmon
+    const snackId = 35; // Bedtime Protein Shake
+
+    // Create weekly plan with Durden's routine (alternating lunch/dinner options)
+    const durdenWeeklyPlan: WeeklyMealPlan = {
+      monday: { breakfast: breakfastId, lunch: lunchOptions[0], dinner: dinnerOptions[0], snacks: snackId },
+      tuesday: { breakfast: breakfastId, lunch: lunchOptions[1], dinner: dinnerOptions[1], snacks: snackId },
+      wednesday: { breakfast: breakfastId, lunch: lunchOptions[0], dinner: dinnerOptions[0], snacks: snackId },
+      thursday: { breakfast: breakfastId, lunch: lunchOptions[1], dinner: dinnerOptions[1], snacks: snackId },
+      friday: { breakfast: breakfastId, lunch: lunchOptions[0], dinner: dinnerOptions[0], snacks: snackId },
+      saturday: { breakfast: breakfastId, lunch: lunchOptions[1], dinner: dinnerOptions[1], snacks: snackId },
+      sunday: { breakfast: breakfastId, lunch: lunchOptions[0], dinner: dinnerOptions[0], snacks: snackId },
     };
-    setCurrentMealPlan(durdenPlan);
+
+    // Also update currentMealPlan for compatibility
+    const durdenCurrentPlan: MealPlan = {
+      breakfast: [breakfastId],
+      lunch: lunchOptions,
+      dinner: dinnerOptions,
+      snacks: [snackId]
+    };
+
+    setWeeklyMealPlan(durdenWeeklyPlan);
+    setCurrentMealPlan(durdenCurrentPlan);
     setMealsSelected(true);
   };
 
