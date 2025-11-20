@@ -697,5 +697,116 @@ export const RECIPES: Recipe[] = [
     prepTime: "2 min",
     cookTime: "0 min",
     requiredFoods: ["Avocado"]
+  },
+  // DURDEN'S SPECIFIC RECIPES
+  {
+    id: 31,
+    name: "Durden's Ribeye Steak with White Rice",
+    mealType: "lunch",
+    ingredients: [
+      { name: "Ribeye Steak", amount: "8-10 oz" },
+      { name: "White Rice", amount: "1.5 cups cooked" },
+      { name: "Grass-Fed Butter", amount: "2 tbsp" }
+    ],
+    servingSize: "1 serving",
+    macros: { protein: 60, carbs: 70, fats: 45, calories: 950 },
+    instructions: [
+      "Cook 1.5 cups white rice and mix with butter",
+      "Season ribeye generously with salt and pepper",
+      "Heat cast iron skillet or grill to high heat",
+      "Sear steak 4-5 minutes per side for medium-rare",
+      "Let steak rest 5 minutes",
+      "Serve ribeye over buttered white rice"
+    ],
+    prepTime: "5 min",
+    cookTime: "20 min",
+    requiredFoods: ["Ribeye Steak", "White Rice", "Grass-Fed Butter"]
+  },
+  {
+    id: 32,
+    name: "Durden's Olive Oil Tuna Bowl",
+    mealType: "dinner",
+    ingredients: [
+      { name: "Sardines", amount: "2 cans olive oil tuna" },
+      { name: "Avocado", amount: "1 whole (optional)" }
+    ],
+    servingSize: "1 serving",
+    macros: { protein: 50, carbs: 8, fats: 30, calories: 500 },
+    instructions: [
+      "Open 1-2 cans of olive oil tuna",
+      "Dice half an onion",
+      "Mix tuna with onion, goat cheese, sour cream, and salt",
+      "Add sliced avocado if desired",
+      "Serve with crackers or bread"
+    ],
+    prepTime: "5 min",
+    cookTime: "0 min",
+    requiredFoods: ["Sardines", "Avocado"]
+  },
+  {
+    id: 33,
+    name: "Durden's Breakfast: Eggs, Avocado & Banana",
+    mealType: "breakfast",
+    ingredients: [
+      { name: "Whole Eggs", amount: "4-6 large eggs" },
+      { name: "Avocado", amount: "1 whole" },
+      { name: "Bananas", amount: "1 medium" },
+      { name: "Avocado Oil", amount: "1 tbsp" }
+    ],
+    servingSize: "1 serving",
+    macros: { protein: 35, carbs: 40, fats: 42, calories: 680 },
+    instructions: [
+      "Crack 4-6 eggs into bowl and whisk",
+      "Heat avocado oil in pan over medium heat",
+      "Scramble eggs for 2-3 minutes until fluffy",
+      "Slice whole avocado",
+      "Serve eggs with avocado and banana on the side",
+      "Optional: add 1-2 slices white bread"
+    ],
+    prepTime: "5 min",
+    cookTime: "5 min",
+    requiredFoods: ["Whole Eggs", "Avocado", "Bananas", "Avocado Oil"]
+  },
+  {
+    id: 34,
+    name: "Durden's Pan-Seared Salmon",
+    mealType: "dinner",
+    ingredients: [
+      { name: "Salmon", amount: "6-8 oz fillet" },
+      { name: "Extra Virgin Olive Oil", amount: "2 tbsp" }
+    ],
+    servingSize: "1 serving",
+    macros: { protein: 50, carbs: 0, fats: 35, calories: 530 },
+    instructions: [
+      "Season salmon with garlic, lemon, salt, and pepper",
+      "Heat olive oil in pan over medium-high heat",
+      "Place salmon skin-side down",
+      "Cook 5-6 minutes until skin is crispy",
+      "Flip and cook another 3-4 minutes",
+      "Serve immediately"
+    ],
+    prepTime: "5 min",
+    cookTime: "10 min",
+    requiredFoods: ["Salmon", "Extra Virgin Olive Oil"]
+  },
+  {
+    id: 35,
+    name: "Durden's Bedtime Protein Shake",
+    mealType: "snack",
+    ingredients: [
+      { name: "Whey Protein Powder", amount: "1-2 scoops (30-60g)" }
+    ],
+    servingSize: "1 shake",
+    macros: { protein: 50, carbs: 6, fats: 3, calories: 250 },
+    instructions: [
+      "Add 1-2 scoops whey protein to shaker",
+      "Add 1 scoop creatine monohydrate",
+      "Mix with water or milk",
+      "Shake well",
+      "Drink as last thing before bed"
+    ],
+    prepTime: "2 min",
+    cookTime: "0 min",
+    requiredFoods: ["Whey Protein Powder"]
   }
 ];
