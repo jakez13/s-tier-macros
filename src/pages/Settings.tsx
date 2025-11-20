@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 
 export const Settings = () => {
   const navigate = useNavigate();
-  const { userProfile, macros } = useApp();
+  const { userProfile, macros, resetAllData } = useApp();
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -78,6 +78,20 @@ export const Settings = () => {
             <p>Version 1.0</p>
             <p className="text-foreground font-semibold">The Durden Effect Nutrition System</p>
           </div>
+        </Card>
+
+        {/* Reset Data */}
+        <Card className="p-6 mb-4 bg-secondary/50 border-border border-destructive/50">
+          <h2 className="text-xl font-bold text-destructive mb-2">Reset All Data</h2>
+          <p className="text-sm text-muted-foreground mb-4">This will clear all your data and return you to the onboarding screen.</p>
+          
+          <Button 
+            onClick={resetAllData}
+            variant="destructive"
+            className="w-full"
+          >
+            Reset All Data
+          </Button>
         </Card>
       </div>
     </div>
