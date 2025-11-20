@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface GeneratedMeal {
   name: string;
@@ -42,23 +43,18 @@ export const AiMealDialog = ({ open, onOpenChange, onMealCreated }: AiMealDialog
 
     setIsGenerating(true);
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-meal`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ description })
-        }
-      );
+      const { data, error } = await supabase.functions.invoke('generate-ai-meal', {
+        body: { description }
+      });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to generate meal");
+      if (error) {
+        throw new Error(error.message || "Failed to generate meal");
       }
 
-      const data = await response.json();
+      if (!data?.meal) {
+        throw new Error("No meal data received");
+      }
+
       setGeneratedMeal(data.meal);
       setIsEditing(false);
       
