@@ -41,7 +41,7 @@ interface LoadingStep {
 
 export const MealPlans = () => {
   const navigate = useNavigate();
-  const { macros, weeklyMealPlan, setWeeklyMealPlan, selectedRecipes, userProfile } = useApp();
+  const { macros, weeklyMealPlan, setWeeklyMealPlan, selectedRecipes, userProfile, loadDurdenRoutine } = useApp();
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('monday');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -703,13 +703,16 @@ export const MealPlans = () => {
             </p>
           </div>
           <Button 
-            onClick={() => navigate('/settings')}
+            onClick={() => {
+              loadDurdenRoutine();
+              toast.success("Durden's meal routine loaded!");
+            }}
             size="default"
             variant="outline"
             className="w-full sm:w-auto hover:bg-primary/10 hover:border-primary/30 transition-all duration-300"
           >
-            <Settings className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-            User Settings
+            <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+            Import Durden's Meal Routine
           </Button>
         </div>
 
