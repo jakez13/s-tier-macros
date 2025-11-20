@@ -13,9 +13,27 @@ serve(async (req) => {
   try {
     const { description } = await req.json();
     
-    if (!description) {
+    // Validate input type
+    if (!description || typeof description !== 'string') {
       return new Response(
-        JSON.stringify({ error: "Meal description is required" }),
+        JSON.stringify({ error: "Valid meal description is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Trim and validate length
+    const trimmedDescription = description.trim();
+    
+    if (trimmedDescription.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Meal description cannot be empty" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (trimmedDescription.length > 1000) {
+      return new Response(
+        JSON.stringify({ error: "Meal description must be less than 1000 characters" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -25,7 +43,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Generating meal from description:", description);
+    console.log(`Generating meal from description (${trimmedDescription.length} characters)`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -42,7 +60,7 @@ serve(async (req) => {
           },
           {
             role: "user",
-            content: description
+            content: trimmedDescription
           }
         ],
         tools: [
