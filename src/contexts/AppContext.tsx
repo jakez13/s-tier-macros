@@ -76,6 +76,7 @@ interface AppContextType {
   mealsSelected: boolean;
   setMealsSelected: (selected: boolean) => void;
   resetAllData: () => void;
+  loadDurdenRoutine: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -278,6 +279,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     window.location.href = '/';
   };
 
+  const loadDurdenRoutine = () => {
+    // Durden's Daily Meal Structure
+    const durdenPlan: MealPlan = {
+      breakfast: [33], // Durden's Breakfast: Eggs, Avocado & Banana
+      lunch: [31, 9], // Ribeye with White Rice, Chicken Thighs with Rice
+      dinner: [32, 34], // Olive Oil Tuna Bowl, Pan-Seared Salmon
+      snacks: [35] // Bedtime Protein Shake
+    };
+    setCurrentMealPlan(durdenPlan);
+    setMealsSelected(true);
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -305,6 +318,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         mealsSelected,
         setMealsSelected,
         resetAllData,
+        loadDurdenRoutine,
       }}
     >
       {children}

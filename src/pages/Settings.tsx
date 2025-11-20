@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 
 export const Settings = () => {
   const navigate = useNavigate();
-  const { userProfile, macros, resetAllData } = useApp();
+  const { userProfile, macros, resetAllData, loadDurdenRoutine } = useApp();
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -78,6 +78,22 @@ export const Settings = () => {
             <p>Version 1.0</p>
             <p className="text-foreground font-semibold">The Durden Effect Nutrition System</p>
           </div>
+        </Card>
+
+        {/* Durden's Meal Routine */}
+        <Card className="p-6 mb-4 bg-primary/10 border-primary/30">
+          <h2 className="text-xl font-bold text-foreground mb-2">Durden's Daily Meal Routine</h2>
+          <p className="text-sm text-muted-foreground mb-4">Load Tyler Durden's exact daily meal structure: Eggs & Avocado breakfast, Ribeye/Chicken lunch, Tuna/Salmon dinner, and bedtime protein shake.</p>
+          
+          <Button 
+            onClick={() => {
+              loadDurdenRoutine();
+              navigate('/meal-plans');
+            }}
+            className="w-full"
+          >
+            Use Durden's Meal Routine
+          </Button>
         </Card>
 
         {/* Reset Data */}
