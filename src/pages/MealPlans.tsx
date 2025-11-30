@@ -5,11 +5,18 @@ import { RECIPES, Recipe } from '@/data/recipesData';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
-import { ChevronLeft, ChevronRight, Settings, User, Activity, TrendingUp, Target, Sparkles, Check, Loader2, Circle, RefreshCw, Clock, ChefHat, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, User, Activity, TrendingUp, Target, Sparkles, Check, Loader2, Circle, RefreshCw, Clock, ChefHat, Eye, Flame } from 'lucide-react';
 import { toast } from 'sonner';
 import { DailyMealPlan } from '@/contexts/AppContext';
 import { AiMealDialog } from '@/components/AiMealDialog';
 import { RecipeDetailsDialog } from '@/components/RecipeDetailsDialog';
+import { PlanSelector } from '@/components/PlanSelector';
+import { MorningProtocolCard } from '@/components/MorningProtocolCard';
+import { BeforeBedRitualCard } from '@/components/BeforeBedRitualCard';
+import { SupplementsTracker } from '@/components/SupplementsTracker';
+import { WaterIntakeTracker } from '@/components/WaterIntakeTracker';
+import { AfterLunchFiberCard } from '@/components/AfterLunchFiberCard';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
@@ -41,7 +48,19 @@ interface LoadingStep {
 
 export const MealPlans = () => {
   const navigate = useNavigate();
-  const { macros, weeklyMealPlan, setWeeklyMealPlan, selectedRecipes, userProfile, loadDurdenRoutine } = useApp();
+  const { 
+    macros, 
+    weeklyMealPlan, 
+    setWeeklyMealPlan, 
+    selectedRecipes, 
+    userProfile, 
+    loadDurdenRoutine,
+    durdenPlan,
+    setDurdenPlan,
+    dailyTracking,
+    updateDailyTracking,
+    complianceStreak,
+  } = useApp();
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('monday');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -503,87 +522,83 @@ export const MealPlans = () => {
 
     const dayTotals = calculateDayTotals(weeklyMealPlan[selectedDay]);
     
-    const getPercentage = (current: number, target: number) => {
-      return Math.min(Math.round((current / target) * 100), 100);
-    };
-
-    const getStatusColor = (current: number, target: number) => {
-      const percentage = (current / target) * 100;
-      if (percentage >= 90 && percentage <= 110) return 'text-green-500';
-      if (percentage >= 80 && percentage <= 120) return 'text-yellow-500';
-      return 'text-red-500';
-    };
+    // Calculate compliance metrics
+    const morningProtocolComplete = dailyTracking.morningProtocol.every(x => x);
+    const supplementsCount = dailyTracking.supplements.filter(Boolean).length;
+    const beforeBedComplete = dailyTracking.beforeBedRitual.every(x => x);
+    const waterProgress = Math.round((dailyTracking.waterGlasses / 8) * 100);
+    
+    const mealsCount = [
+      weeklyMealPlan[selectedDay].breakfast || morningProtocolComplete,
+      weeklyMealPlan[selectedDay].lunch,
+      weeklyMealPlan[selectedDay].dinner,
+    ].filter(Boolean).length;
+    
+    const totalCompliance = Math.round(
+      (mealsCount / 3 * 25) +
+      (supplementsCount / 6 * 25) +
+      (waterProgress / 100 * 25) +
+      (beforeBedComplete ? 25 : 0)
+    );
 
     return (
       <Card className="p-6 bg-gradient-to-br from-primary/5 via-card to-card border-2 border-primary/20 shadow-xl">
         <div className="space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-border/50">
-            <h3 className="text-lg font-bold text-foreground">Today's Meal Intake</h3>
-            <span className="text-xs text-muted-foreground">{DAY_FULL_LABELS[selectedDay]}</span>
+            <h3 className="text-lg font-bold text-foreground">TODAY'S COMPLIANCE</h3>
+            {complianceStreak > 0 && (
+              <div className="flex items-center gap-1 text-[#ff4444]">
+                <Flame className="w-4 h-4" />
+                <span className="text-sm font-bold">{complianceStreak} days</span>
+              </div>
+            )}
           </div>
 
-          <div className="space-y-4">
-            {/* Calories */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Calories</span>
-                <span className={`text-sm font-bold ${getStatusColor(dayTotals.calories, macros.calories)}`}>
-                  {Math.round(dayTotals.calories)} / {Math.round(macros.calories)}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
+              <span className="text-sm font-medium">Meals Completed</span>
+              <span className="text-sm font-bold text-primary">{mealsCount}/3 ✓</span>
+            </div>
+            
+            <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
+              <span className="text-sm font-medium">Supplements</span>
+              <span className="text-sm font-bold text-primary">{supplementsCount}/6 ✓</span>
+            </div>
+            
+            <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
+              <span className="text-sm font-medium">Water Goal</span>
+              <span className="text-sm font-bold text-primary">{dailyTracking.waterGlasses}/8 ✓</span>
+            </div>
+            
+            <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
+              <span className="text-sm font-medium">Before Bed Ritual</span>
+              <span className={`text-sm font-bold ${beforeBedComplete ? 'text-primary' : 'text-muted-foreground'}`}>
+                {beforeBedComplete ? '✓' : '—'}
+              </span>
+            </div>
+            
+            <div className="pt-3 border-t border-border/50">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-bold">Overall Compliance</span>
+                <span className={`text-lg font-bold ${totalCompliance >= 80 ? 'text-primary' : 'text-yellow-500'}`}>
+                  {totalCompliance}%
                 </span>
-              </div>
-              <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-red-500 to-red-400 transition-all duration-500"
-                  style={{ width: `${getPercentage(dayTotals.calories, macros.calories)}%` }}
-                />
               </div>
             </div>
+          </div>
 
-            {/* Protein */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Protein</span>
-                <span className={`text-sm font-bold ${getStatusColor(dayTotals.protein, macros.protein)}`}>
-                  {Math.round(dayTotals.protein)}g / {Math.round(macros.protein)}g
-                </span>
+          <div className="pt-4 border-t border-border/50">
+            <p className="text-xs text-center text-muted-foreground mb-2">
+              Goal: {durdenPlan === 'lean' ? 'Cut (Lose)' : 'Bulk (Gain)'}
+            </p>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="text-center p-2 rounded bg-background/50">
+                <div className="font-bold text-foreground">{Math.round(dayTotals.calories)}</div>
+                <div className="text-muted-foreground">Calories</div>
               </div>
-              <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-500"
-                  style={{ width: `${getPercentage(dayTotals.protein, macros.protein)}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Carbs */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Carbs</span>
-                <span className={`text-sm font-bold ${getStatusColor(dayTotals.carbs, macros.carbs)}`}>
-                  {Math.round(dayTotals.carbs)}g / {Math.round(macros.carbs)}g
-                </span>
-              </div>
-              <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-500"
-                  style={{ width: `${getPercentage(dayTotals.carbs, macros.carbs)}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Fats */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Fats</span>
-                <span className={`text-sm font-bold ${getStatusColor(dayTotals.fats, macros.fats)}`}>
-                  {Math.round(dayTotals.fats)}g / {Math.round(macros.fats)}g
-                </span>
-              </div>
-              <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-500"
-                  style={{ width: `${getPercentage(dayTotals.fats, macros.fats)}%` }}
-                />
+              <div className="text-center p-2 rounded bg-background/50">
+                <div className="font-bold text-foreground">{Math.round(dayTotals.protein)}g</div>
+                <div className="text-muted-foreground">Protein</div>
               </div>
             </div>
           </div>
@@ -702,17 +717,19 @@ export const MealPlans = () => {
               Weekly meal planning optimized for your goals
             </p>
           </div>
+          
+          <PlanSelector selectedPlan={durdenPlan} onPlanChange={setDurdenPlan} />
+          
           <Button 
             onClick={() => {
               loadDurdenRoutine();
-              toast.success("Durden's meal routine loaded!");
+              toast.success(durdenPlan === 'lean' ? "Durden's Lean Recipes Imported!" : "Durden's Bulk Recipes Imported!");
             }}
             size="default"
-            variant="outline"
-            className="w-full sm:w-auto hover:bg-primary/10 hover:border-primary/30 transition-all duration-300"
+            className="w-full sm:w-auto bg-[#ff4444] hover:bg-[#ff4444]/90 text-white font-bold"
           >
             <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-            Import Durden's Meal Routine
+            {durdenPlan === 'lean' ? "Import Durden's Lean Recipes" : "Import Durden's Bulk Recipes"}
           </Button>
         </div>
 
@@ -780,11 +797,76 @@ export const MealPlans = () => {
               </div>
 
               <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
-                <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  {renderMealCard(weeklyMealPlan[selectedDay].breakfast, 'Breakfast', 'breakfast')}
-                  {renderMealCard(weeklyMealPlan[selectedDay].lunch, 'Lunch', 'lunch')}
-                  {renderMealCard(weeklyMealPlan[selectedDay].dinner, 'Dinner', 'dinner')}
-                  {renderMealCard(weeklyMealPlan[selectedDay].snacks, 'Snacks', 'snacks')}
+                <div className="lg:col-span-2 space-y-4">
+                  {/* Morning Protocol or Breakfast */}
+                  {durdenPlan === 'lean' ? (
+                    <MorningProtocolCard
+                      completed={dailyTracking.morningProtocol}
+                      onToggle={(index) => {
+                        const newProtocol = [...dailyTracking.morningProtocol];
+                        newProtocol[index] = !newProtocol[index];
+                        updateDailyTracking({ morningProtocol: newProtocol });
+                      }}
+                    />
+                  ) : (
+                    weeklyMealPlan[selectedDay].breakfast && renderMealCard(weeklyMealPlan[selectedDay].breakfast, 'BREAKFAST', 'breakfast')
+                  )}
+                  
+                  {/* Lunch */}
+                  {weeklyMealPlan[selectedDay].lunch && (
+                    <div>
+                      {renderMealCard(weeklyMealPlan[selectedDay].lunch, 'LUNCH (12pm-1pm)', 'lunch')}
+                      <p className="text-xs text-muted-foreground text-center mt-1 font-semibold">
+                        140g+ protein minimum - avoid carbs
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* After Lunch Fiber (Lean only) */}
+                  {durdenPlan === 'lean' && (
+                    <AfterLunchFiberCard
+                      completed={dailyTracking.afterLunchFiber}
+                      onToggle={() => updateDailyTracking({ afterLunchFiber: !dailyTracking.afterLunchFiber })}
+                    />
+                  )}
+                  
+                  {/* Dinner */}
+                  {weeklyMealPlan[selectedDay].dinner && (
+                    <div>
+                      {renderMealCard(weeklyMealPlan[selectedDay].dinner, 'DINNER (7:30pm)', 'dinner')}
+                      <p className="text-xs text-muted-foreground text-center mt-1 font-semibold">
+                        Can load more carbs
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Before Bed Ritual */}
+                  <BeforeBedRitualCard
+                    completed={dailyTracking.beforeBedRitual}
+                    onToggle={(index) => {
+                      const newRitual = [...dailyTracking.beforeBedRitual];
+                      newRitual[index] = !newRitual[index];
+                      updateDailyTracking({ beforeBedRitual: newRitual });
+                    }}
+                  />
+                  
+                  {/* Supplements */}
+                  <SupplementsTracker
+                    completed={dailyTracking.supplements}
+                    onToggle={(index) => {
+                      const newSupplements = [...dailyTracking.supplements];
+                      newSupplements[index] = !newSupplements[index];
+                      updateDailyTracking({ supplements: newSupplements });
+                    }}
+                  />
+                  
+                  {/* Water Intake */}
+                  <WaterIntakeTracker
+                    glasses={dailyTracking.waterGlasses}
+                    onGlassClick={(index) => {
+                      updateDailyTracking({ waterGlasses: index < dailyTracking.waterGlasses ? index : index + 1 });
+                    }}
+                  />
                 </div>
 
                 <div className="lg:col-span-1 space-y-6">
