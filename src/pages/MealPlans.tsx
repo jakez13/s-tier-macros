@@ -67,7 +67,6 @@ export const MealPlans = () => {
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [showMorningMealSelector, setShowMorningMealSelector] = useState(false);
   const [viewingRecipe, setViewingRecipe] = useState<Recipe | null>(null);
   const [customRecipes, setCustomRecipes] = useState<Recipe[]>(() => {
     const saved = localStorage.getItem('customRecipes');
@@ -86,13 +85,6 @@ export const MealPlans = () => {
     beforeBed: true,
   };
 
-  const morningMealOptions = [
-    'Morning Protocol',
-    'Power Breakfast',
-    'Quick Start',
-    'Keto Morning',
-  ];
-
   const handleRemoveSection = (section: string) => {
     updateSectionVisibility(section, false);
     toast.success(`${section} section removed`);
@@ -101,12 +93,6 @@ export const MealPlans = () => {
   const handleRestoreSection = (section: string) => {
     updateSectionVisibility(section, true);
     toast.success(`${section} section restored`);
-  };
-
-  const handleChangeMorningMeal = (mealName: string) => {
-    updateSelectedMorningMeal(mealName);
-    setShowMorningMealSelector(false);
-    toast.success(`Morning meal changed to ${mealName}`);
   };
 
   const [loadingSteps, setLoadingSteps] = useState<LoadingStep[]>([
@@ -561,17 +547,16 @@ export const MealPlans = () => {
     if (!macros) return null;
     
     // Calculate compliance metrics
-    const morningProtocolComplete = dailyTracking.morningProtocol.every(x => x);
-    const morningProtocolCount = dailyTracking.morningProtocol.filter(Boolean).length;
     const supplementsCount = dailyTracking.supplements.filter(Boolean).length;
     const beforeBedComplete = dailyTracking.beforeBedRitual.every(x => x);
     const lunchCompleted = dailyTracking.lunchCompleted || false;
     const dinnerCompleted = dailyTracking.dinnerCompleted || false;
+    const breakfastCompleted = dailyTracking.breakfastCompleted || false;
     const afterLunchFiber = dailyTracking.afterLunchFiber || false;
     
     const totalItems = 7;
     const completedItems = [
-      morningProtocolComplete,
+      breakfastCompleted,
       lunchCompleted,
       afterLunchFiber,
       dinnerCompleted,
@@ -582,12 +567,6 @@ export const MealPlans = () => {
     
     const totalCompliance = Math.round((completedItems / totalItems) * 100);
     
-    // Calculate total calories consumed including protocol items
-    const morningProtocolCalories = [140, 110, 105, 100];
-    const morningCaloriesConsumed = dailyTracking.morningProtocol.reduce((sum, completed, index) => 
-      sum + (completed ? morningProtocolCalories[index] : 0), 0
-    );
-    
     const beforeBedCalories = [120, 150, 0];
     const beforeBedCaloriesConsumed = dailyTracking.beforeBedRitual.reduce((sum, completed, index) => 
       sum + (completed ? beforeBedCalories[index] : 0), 0
@@ -595,10 +574,11 @@ export const MealPlans = () => {
     
     // Calculate meal calories
     const dayPlan = weeklyMealPlan[selectedDay];
+    const breakfastCalories = dayPlan.breakfast ? (getRecipeById(dayPlan.breakfast)?.macros.calories || 0) : 0;
     const lunchCalories = dayPlan.lunch ? (getRecipeById(dayPlan.lunch)?.macros.calories || 0) : 0;
     const dinnerCalories = dayPlan.dinner ? (getRecipeById(dayPlan.dinner)?.macros.calories || 0) : 0;
     
-    const totalCaloriesConsumed = morningCaloriesConsumed + 
+    const totalCaloriesConsumed = (breakfastCompleted ? breakfastCalories : 0) +
       (lunchCompleted ? lunchCalories : 0) + 
       (dinnerCompleted ? dinnerCalories : 0) +
       beforeBedCaloriesConsumed;
@@ -645,10 +625,10 @@ export const MealPlans = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
                 <div className="flex items-center gap-2">
-                  <Checkbox checked={morningProtocolComplete} disabled />
-                  <span className="text-sm">Morning Protocol</span>
+                  <Checkbox checked={dailyTracking.breakfastCompleted} disabled />
+                  <span className="text-sm">Breakfast Completed</span>
                 </div>
-                <span className="text-xs text-muted-foreground">{morningProtocolCount}/4</span>
+                <span className="text-xs text-muted-foreground">{dailyTracking.breakfastCompleted ? '✓' : '—'}</span>
               </div>
             
               <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
@@ -931,54 +911,20 @@ export const MealPlans = () => {
 
               <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
                 <div className="lg:col-span-2 space-y-4">
-                  {/* Morning Meal - Always show on all plans */}
+                  {/* Breakfast */}
                   {visibleSections.morningMeal && (
-                    <div className={`relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
+                    <div className={`relative ${editMode ? 'animate-[wiggle_0.5s_ease-in-out_infinite]' : ''}`}>
                       {editMode && (
-                        <div className="absolute -top-2 -right-2 z-10 flex gap-2">
-                          <Button
-                            size="icon"
-                            variant="destructive"
-                            className="h-7 w-7 rounded-full shadow-lg"
-                            onClick={() => handleRemoveSection('morningMeal')}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            className="h-7 w-7 rounded-full shadow-lg bg-primary hover:bg-primary/90"
-                            onClick={() => setShowMorningMealSelector(!showMorningMealSelector)}
-                          >
-                            <Edit3 className="h-3 w-3" />
-                          </Button>
-                        </div>
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="absolute -top-2 -right-2 z-10 h-7 w-7 rounded-full shadow-lg"
+                          onClick={() => handleRemoveSection('morningMeal')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       )}
-                      {showMorningMealSelector && editMode && (
-                        <Card className="absolute top-0 left-0 right-0 z-20 p-4 bg-background border-2 border-primary shadow-xl">
-                          <h4 className="font-bold mb-3">Select Morning Meal</h4>
-                          <div className="space-y-2">
-                            {morningMealOptions.map((option) => (
-                              <Button
-                                key={option}
-                                onClick={() => handleChangeMorningMeal(option)}
-                                variant={(dailyTracking.selectedMorningMeal || 'Morning Protocol') === option ? "default" : "outline"}
-                                className="w-full justify-start"
-                              >
-                                {option}
-                              </Button>
-                            ))}
-                          </div>
-                        </Card>
-                      )}
-                      <MorningProtocolCard
-                        completed={dailyTracking.morningProtocol}
-                        onToggle={(index) => {
-                          const newProtocol = [...dailyTracking.morningProtocol];
-                          newProtocol[index] = !newProtocol[index];
-                          updateDailyTracking({ morningProtocol: newProtocol });
-                        }}
-                        mealName={dailyTracking.selectedMorningMeal || 'Morning Protocol'}
-                      />
+                      {renderMealCard(weeklyMealPlan[selectedDay].breakfast, 'BREAKFAST', 'breakfast')}
                     </div>
                   )}
                   
@@ -1005,7 +951,7 @@ export const MealPlans = () => {
                   
                   {/* Before Bed Ritual */}
                   {visibleSections.beforeBed && (
-                    <div className={`relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
+                    <div className={`relative ${editMode ? 'animate-[wiggle_0.5s_ease-in-out_infinite]' : ''}`}>
                       {editMode && (
                         <Button
                           size="icon"
@@ -1029,7 +975,7 @@ export const MealPlans = () => {
                   
                   {/* Supplements */}
                   {visibleSections.supplements && (
-                    <div className={`relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
+                    <div className={`relative ${editMode ? 'animate-[wiggle_0.5s_ease-in-out_infinite]' : ''}`}>
                       {editMode && (
                         <Button
                           size="icon"
@@ -1053,7 +999,7 @@ export const MealPlans = () => {
                   
                   {/* Water Intake */}
                   {visibleSections.water && (
-                    <div className={`relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
+                    <div className={`relative ${editMode ? 'animate-[wiggle_0.5s_ease-in-out_infinite]' : ''}`}>
                       {editMode && (
                         <Button
                           size="icon"
@@ -1084,9 +1030,9 @@ export const MealPlans = () => {
                             variant="outline"
                             size="sm"
                           >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Morning Meal
-                          </Button>
+                             <Plus className="w-4 h-4 mr-2" />
+                             Breakfast
+                           </Button>
                         )}
                         {!visibleSections.supplements && (
                           <Button
