@@ -1,57 +1,86 @@
 import { Card } from "./ui/card";
-import { Droplets } from "lucide-react";
-import { Progress } from "./ui/progress";
+import { Button } from "./ui/button";
+import { Droplet, Plus, Minus, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { useState } from "react";
 
 interface WaterIntakeTrackerProps {
-  glasses: number;
-  onIncrease: () => void;
-  onDecrease: () => void;
+  waterGlasses: number;
+  onWaterChange: (newValue: number) => void;
 }
 
-export const WaterIntakeTracker = ({ glasses, onIncrease, onDecrease }: WaterIntakeTrackerProps) => {
-  const totalGlasses = 8;
+export const WaterIntakeTracker = ({ waterGlasses, onWaterChange }: WaterIntakeTrackerProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const targetGlasses = 8;
+  const percentage = Math.round((waterGlasses / targetGlasses) * 100);
+
+  const handleIncrement = () => {
+    if (waterGlasses < targetGlasses) {
+      onWaterChange(waterGlasses + 1);
+    }
+  };
+
+  const handleDecrement = () => {
+    if (waterGlasses > 0) {
+      onWaterChange(waterGlasses - 1);
+    }
+  };
 
   return (
     <Card className="p-4 sm:p-6 bg-gradient-to-br from-secondary/80 to-secondary/40 border-border/50">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="bg-primary/20 p-2 rounded-lg">
-          <Droplets className="w-5 h-5 text-primary" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-lg font-bold text-foreground">WATER INTAKE</h3>
-        </div>
-      </div>
-      
-      <div className="flex items-center justify-center gap-4">
-        <button
-          onClick={onDecrease}
-          disabled={glasses === 0}
-          className="h-10 w-10 rounded-lg border-2 border-border bg-background/50 hover:bg-background hover:border-primary/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-lg font-bold"
-        >
-          -
-        </button>
-        
-        <div className="text-center min-w-[140px]">
-          <div className="text-2xl font-bold text-foreground">
-            {glasses} / {totalGlasses}
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger className="w-full">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-primary/20 p-2 rounded-lg">
+              <Droplet className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <h3 className="text-lg font-bold text-foreground">Water Intake</h3>
+              <p className="text-sm text-muted-foreground">
+                {waterGlasses}/{targetGlasses} glasses • {percentage}%
+              </p>
+            </div>
+            <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
           </div>
-          <div className="text-xs text-muted-foreground uppercase tracking-wider mt-1">
-            glasses
-          </div>
-        </div>
-        
-        <button
-          onClick={onIncrease}
-          disabled={glasses >= totalGlasses}
-          className="h-10 w-10 rounded-lg border-2 border-border bg-background/50 hover:bg-background hover:border-primary/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-lg font-bold"
-        >
-          +
-        </button>
-      </div>
+        </CollapsibleTrigger>
 
-      <p className="text-xs text-center text-muted-foreground mt-4">
-        Good water intake is essential
-      </p>
+        <CollapsibleContent>
+          <div className="flex items-center justify-center gap-4 py-4">
+            <Button
+              onClick={handleDecrement}
+              variant="outline"
+              size="icon"
+              disabled={waterGlasses === 0}
+              className="h-12 w-12"
+            >
+              <Minus className="h-5 w-5" />
+            </Button>
+            
+            <div className="text-center min-w-[120px]">
+              <div className="text-3xl font-bold text-foreground">
+                {waterGlasses} / {targetGlasses}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                glasses
+              </div>
+            </div>
+            
+            <Button
+              onClick={handleIncrement}
+              variant="outline"
+              size="icon"
+              disabled={waterGlasses >= targetGlasses}
+              className="h-12 w-12"
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          </div>
+          
+          <p className="text-xs text-center text-muted-foreground mt-2">
+            Good water intake is essential
+          </p>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 };

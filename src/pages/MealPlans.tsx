@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import { DailyMealPlan } from '@/contexts/AppContext';
 import { AiMealDialog } from '@/components/AiMealDialog';
 import { RecipeDetailsDialog } from '@/components/RecipeDetailsDialog';
-import { PlanSelector } from '@/components/PlanSelector';
 import { MorningProtocolCard } from '@/components/MorningProtocolCard';
 import { BeforeBedRitualCard } from '@/components/BeforeBedRitualCard';
 import { SupplementsTracker } from '@/components/SupplementsTracker';
@@ -535,11 +534,11 @@ export const MealPlans = () => {
     const dinnerCompleted = dailyTracking.dinnerCompleted || false;
     const afterLunchFiber = dailyTracking.afterLunchFiber || false;
     
-    const totalItems = durdenPlan === 'lean' ? 7 : 6;
+    const totalItems = 7;
     const completedItems = [
       morningProtocolComplete,
       lunchCompleted,
-      durdenPlan === 'lean' ? afterLunchFiber : true,
+      afterLunchFiber,
       dinnerCompleted,
       beforeBedComplete,
       supplementsCount === 6,
@@ -547,16 +546,68 @@ export const MealPlans = () => {
     ].filter(Boolean).length;
     
     const totalCompliance = Math.round((completedItems / totalItems) * 100);
+    
+    // Calculate total calories consumed including protocol items
+    const morningProtocolCalories = [140, 110, 105, 100];
+    const morningCaloriesConsumed = dailyTracking.morningProtocol.reduce((sum, completed, index) => 
+      sum + (completed ? morningProtocolCalories[index] : 0), 0
+    );
+    
+    const beforeBedCalories = [120, 150, 0];
+    const beforeBedCaloriesConsumed = dailyTracking.beforeBedRitual.reduce((sum, completed, index) => 
+      sum + (completed ? beforeBedCalories[index] : 0), 0
+    );
+    
+    // Calculate meal calories
+    const dayPlan = weeklyMealPlan[selectedDay];
+    const lunchCalories = dayPlan.lunch ? (getRecipeById(dayPlan.lunch)?.macros.calories || 0) : 0;
+    const dinnerCalories = dayPlan.dinner ? (getRecipeById(dayPlan.dinner)?.macros.calories || 0) : 0;
+    
+    const totalCaloriesConsumed = morningCaloriesConsumed + 
+      (lunchCompleted ? lunchCalories : 0) + 
+      (dinnerCompleted ? dinnerCalories : 0) +
+      beforeBedCaloriesConsumed;
+    
+    const calorieGoal = userProfile?.calories || macros.calories;
+    const remainingCalories = calorieGoal - totalCaloriesConsumed;
 
     return (
-      <Card className="p-6 bg-gradient-to-br from-primary/5 via-card to-card border-2 border-primary/20 shadow-xl">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-border/50">
-            <h3 className="text-lg font-bold text-foreground">TODAY'S COMPLIANCE</h3>
+      <>
+        <Card className="p-6 bg-gradient-to-br from-primary/5 via-card to-card border-2 border-primary/20 shadow-xl">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-border/50">
+              <h3 className="text-lg font-bold text-foreground">TODAY'S CALORIES</h3>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="text-center p-4 rounded-lg bg-background/50">
+                <div className="text-4xl font-bold text-primary mb-2">
+                  {Math.round(totalCaloriesConsumed)} / {Math.round(calorieGoal)}
+                </div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Calories Consumed / Goal
+                </div>
+              </div>
+              
+              <div className="text-center p-3 rounded-lg bg-muted/30">
+                <div className={`text-2xl font-bold ${remainingCalories >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {Math.abs(Math.round(remainingCalories))}
+                </div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                  {remainingCalories >= 0 ? 'Calories Remaining' : 'Calories Over'}
+                </div>
+              </div>
+            </div>
           </div>
+        </Card>
 
-          <div className="space-y-2">
-            {durdenPlan === 'lean' && (
+        <Card className="p-6 bg-gradient-to-br from-primary/5 via-card to-card border-2 border-primary/20 shadow-xl">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-border/50">
+              <h3 className="text-lg font-bold text-foreground">TODAY'S COMPLIANCE</h3>
+            </div>
+
+            <div className="space-y-2">
               <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
                 <div className="flex items-center gap-2">
                   <Checkbox checked={morningProtocolComplete} disabled />
@@ -564,17 +615,15 @@ export const MealPlans = () => {
                 </div>
                 <span className="text-xs text-muted-foreground">{morningProtocolCount}/4</span>
               </div>
-            )}
             
-            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
-              <div className="flex items-center gap-2">
-                <Checkbox checked={lunchCompleted} disabled />
-                <span className="text-sm">Lunch Completed</span>
+              <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={lunchCompleted} disabled />
+                  <span className="text-sm">Lunch Completed</span>
+                </div>
+                <span className="text-xs text-muted-foreground">{lunchCompleted ? '✓' : '—'}</span>
               </div>
-              <span className="text-xs text-muted-foreground">{lunchCompleted ? '✓' : '—'}</span>
-            </div>
-            
-            {durdenPlan === 'lean' && (
+              
               <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
                 <div className="flex items-center gap-2">
                   <Checkbox checked={afterLunchFiber} disabled />
@@ -582,7 +631,6 @@ export const MealPlans = () => {
                 </div>
                 <span className="text-xs text-muted-foreground">{afterLunchFiber ? '✓' : '—'}</span>
               </div>
-            )}
             
             <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
               <div className="flex items-center gap-2">
@@ -627,6 +675,7 @@ export const MealPlans = () => {
           </div>
         </div>
       </Card>
+      </>
     );
   };
 
@@ -741,20 +790,37 @@ export const MealPlans = () => {
             </p>
           </div>
           
-          <PlanSelector selectedPlan={durdenPlan} onPlanChange={setDurdenPlan} />
-          
-          <Button
-            onClick={() => {
-              loadDurdenRoutine();
-              const isLean = userProfile?.goal === 'cut';
-              toast.success(isLean ? "Durden's Lean Recipes Imported!" : "Durden's Bulk Recipes Imported!");
-            }}
-            size="default"
-            className="w-full sm:w-auto bg-[#ff4444] hover:bg-[#ff4444]/90 text-white font-bold"
-          >
-            <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-            {userProfile?.goal === 'cut' ? "Import Durden's Lean Recipes" : "Import Durden's Bulk Recipes"}
-          </Button>
+          {/* Import buttons based on user's goal */}
+          <div className="flex gap-2 flex-wrap">
+            {(userProfile?.goal === 'cut' || userProfile?.goal === 'maintain') && (
+              <Button
+                onClick={() => {
+                  setDurdenPlan('lean');
+                  loadDurdenRoutine();
+                  toast.success("Durden's Lean Recipes Imported!");
+                }}
+                size="default"
+                className="flex-1 sm:flex-none bg-[#ff4444] hover:bg-[#ff4444]/90 text-white font-bold"
+              >
+                <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                Import Durden's Lean Recipes
+              </Button>
+            )}
+            {(userProfile?.goal === 'bulk' || userProfile?.goal === 'maintain') && (
+              <Button
+                onClick={() => {
+                  setDurdenPlan('bulk');
+                  loadDurdenRoutine();
+                  toast.success("Durden's Bulk Recipes Imported!");
+                }}
+                size="default"
+                className="flex-1 sm:flex-none bg-[#ff4444] hover:bg-[#ff4444]/90 text-white font-bold"
+              >
+                <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                Import Durden's Bulk Recipes
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4 sm:space-y-6">
@@ -822,37 +888,31 @@ export const MealPlans = () => {
 
               <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
                 <div className="lg:col-span-2 space-y-4">
-                  {/* Morning Protocol or Breakfast */}
-                  {durdenPlan === 'lean' ? (
-                    <MorningProtocolCard
-                      completed={dailyTracking.morningProtocol}
-                      onToggle={(index) => {
-                        const newProtocol = [...dailyTracking.morningProtocol];
-                        newProtocol[index] = !newProtocol[index];
-                        updateDailyTracking({ morningProtocol: newProtocol });
-                      }}
-                    />
-                  ) : (
-                    renderMealCard(weeklyMealPlan[selectedDay].breakfast, 'BREAKFAST', 'breakfast')
-                  )}
+                  {/* Morning Meal - Always show on all plans */}
+                  <MorningProtocolCard
+                    completed={dailyTracking.morningProtocol}
+                    onToggle={(index) => {
+                      const newProtocol = [...dailyTracking.morningProtocol];
+                      newProtocol[index] = !newProtocol[index];
+                      updateDailyTracking({ morningProtocol: newProtocol });
+                    }}
+                  />
                   
                   {/* Lunch */}
                   <div className="space-y-2">
                     {renderMealCard(weeklyMealPlan[selectedDay].lunch, 'LUNCH', 'lunch')}
-                    {durdenPlan === 'lean' && (
-                      <div className="flex items-center gap-2 p-2 rounded-lg bg-background/30 border border-border/30">
-                        <Checkbox
-                          checked={dailyTracking.afterLunchFiber}
-                          onCheckedChange={(checked) => updateDailyTracking({ afterLunchFiber: checked as boolean })}
-                        />
-                        <label 
-                          className="text-xs text-muted-foreground cursor-pointer flex-1" 
-                          onClick={() => updateDailyTracking({ afterLunchFiber: !dailyTracking.afterLunchFiber })}
-                        >
-                          ☐ Ate fruit after for fiber
-                        </label>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-background/30 border border-border/30">
+                      <Checkbox
+                        checked={dailyTracking.afterLunchFiber}
+                        onCheckedChange={(checked) => updateDailyTracking({ afterLunchFiber: checked as boolean })}
+                      />
+                      <label 
+                        className="text-xs text-muted-foreground cursor-pointer flex-1" 
+                        onClick={() => updateDailyTracking({ afterLunchFiber: !dailyTracking.afterLunchFiber })}
+                      >
+                        Ate fruit after for fiber
+                      </label>
+                    </div>
                   </div>
                   
                   {/* Dinner */}
@@ -881,16 +941,9 @@ export const MealPlans = () => {
                   
                   {/* Water Intake */}
                   <WaterIntakeTracker
-                    glasses={dailyTracking.waterGlasses}
-                    onIncrease={() => {
-                      if (dailyTracking.waterGlasses < 8) {
-                        updateDailyTracking({ waterGlasses: dailyTracking.waterGlasses + 1 });
-                      }
-                    }}
-                    onDecrease={() => {
-                      if (dailyTracking.waterGlasses > 0) {
-                        updateDailyTracking({ waterGlasses: dailyTracking.waterGlasses - 1 });
-                      }
+                    waterGlasses={dailyTracking.waterGlasses}
+                    onWaterChange={(newValue) => {
+                      updateDailyTracking({ waterGlasses: newValue });
                     }}
                   />
                 </div>
