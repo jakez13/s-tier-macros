@@ -58,7 +58,7 @@ export const MealPlans = () => {
     dailyTracking,
     updateDailyTracking,
     updateSectionVisibility,
-    updateSelectedMorningMeal,
+    updateItemVisibility,
     complianceStreak,
   } = useApp();
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('monday');
@@ -85,6 +85,12 @@ export const MealPlans = () => {
     beforeBed: true,
   };
 
+  const enabledItems = dailyTracking.enabledItems || {
+    morningProtocol: [true, true, true, true],
+    supplements: [true, true, true, true, true, true],
+    beforeBedRitual: [true, true, true],
+  };
+
   const handleRemoveSection = (section: string) => {
     updateSectionVisibility(section, false);
     toast.success(`${section} section removed`);
@@ -93,6 +99,16 @@ export const MealPlans = () => {
   const handleRestoreSection = (section: string) => {
     updateSectionVisibility(section, true);
     toast.success(`${section} section restored`);
+  };
+
+  const handleRemoveItem = (section: 'morningProtocol' | 'supplements' | 'beforeBedRitual', index: number) => {
+    updateItemVisibility(section, index, false);
+    toast.success('Item removed');
+  };
+
+  const handleRestoreItem = (section: 'morningProtocol' | 'supplements' | 'beforeBedRitual', index: number) => {
+    updateItemVisibility(section, index, true);
+    toast.success('Item restored');
   };
 
   const [loadingSteps, setLoadingSteps] = useState<LoadingStep[]>([
@@ -547,38 +563,49 @@ export const MealPlans = () => {
     if (!macros) return null;
     
     // Calculate compliance metrics
-    const supplementsCount = dailyTracking.supplements.filter(Boolean).length;
-    const beforeBedComplete = dailyTracking.beforeBedRitual.every(x => x);
+    const supplementsCount = dailyTracking.supplements.filter((c, i) => c && enabledItems.supplements[i]).length;
+    const supplementsTotal = enabledItems.supplements.filter(Boolean).length;
+    const beforeBedComplete = dailyTracking.beforeBedRitual.every((c, i) => enabledItems.beforeBedRitual[i] ? c : true);
+    const morningProtocolComplete = dailyTracking.morningProtocol.every((c, i) => enabledItems.morningProtocol[i] ? c : true);
     const lunchCompleted = dailyTracking.lunchCompleted || false;
     const dinnerCompleted = dailyTracking.dinnerCompleted || false;
-    const breakfastCompleted = dailyTracking.breakfastCompleted || false;
     const afterLunchFiber = dailyTracking.afterLunchFiber || false;
     
     const totalItems = 7;
     const completedItems = [
-      breakfastCompleted,
+      morningProtocolComplete,
       lunchCompleted,
       afterLunchFiber,
       dinnerCompleted,
       beforeBedComplete,
-      supplementsCount === 6,
+      supplementsCount === supplementsTotal,
       dailyTracking.waterGlasses >= 8,
     ].filter(Boolean).length;
     
     const totalCompliance = Math.round((completedItems / totalItems) * 100);
     
+    // Calculate morning protocol calories
+    const morningProtocolItems = [
+      { calories: 140 },
+      { calories: 110 },
+      { calories: 105 },
+      { calories: 100 }
+    ];
+    const morningProtocolCalories = dailyTracking.morningProtocol.reduce((sum, completed, index) => 
+      sum + (completed && enabledItems.morningProtocol[index] ? morningProtocolItems[index].calories : 0), 0
+    );
+    
     const beforeBedCalories = [120, 150, 0];
     const beforeBedCaloriesConsumed = dailyTracking.beforeBedRitual.reduce((sum, completed, index) => 
-      sum + (completed ? beforeBedCalories[index] : 0), 0
+      sum + (completed && enabledItems.beforeBedRitual[index] ? beforeBedCalories[index] : 0), 0
     );
     
     // Calculate meal calories
     const dayPlan = weeklyMealPlan[selectedDay];
-    const breakfastCalories = dayPlan.breakfast ? (getRecipeById(dayPlan.breakfast)?.macros.calories || 0) : 0;
     const lunchCalories = dayPlan.lunch ? (getRecipeById(dayPlan.lunch)?.macros.calories || 0) : 0;
     const dinnerCalories = dayPlan.dinner ? (getRecipeById(dayPlan.dinner)?.macros.calories || 0) : 0;
     
-    const totalCaloriesConsumed = (breakfastCompleted ? breakfastCalories : 0) +
+    const totalCaloriesConsumed = morningProtocolCalories +
       (lunchCompleted ? lunchCalories : 0) + 
       (dinnerCompleted ? dinnerCalories : 0) +
       beforeBedCaloriesConsumed;
@@ -625,10 +652,10 @@ export const MealPlans = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
                 <div className="flex items-center gap-2">
-                  <Checkbox checked={dailyTracking.breakfastCompleted} disabled />
-                  <span className="text-sm">Breakfast Completed</span>
+                  <Checkbox checked={morningProtocolComplete} disabled />
+                  <span className="text-sm">Morning Protocol Completed</span>
                 </div>
-                <span className="text-xs text-muted-foreground">{dailyTracking.breakfastCompleted ? '✓' : '—'}</span>
+                <span className="text-xs text-muted-foreground">{morningProtocolComplete ? '✓' : '—'}</span>
               </div>
             
               <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
@@ -911,7 +938,7 @@ export const MealPlans = () => {
 
               <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
                 <div className="lg:col-span-2 space-y-4">
-                  {/* Breakfast */}
+                  {/* Morning Protocol */}
                   {visibleSections.morningMeal && (
                     <div className={`relative ${editMode ? 'animate-[wiggle_0.5s_ease-in-out_infinite]' : ''}`}>
                       {editMode && (
@@ -924,7 +951,18 @@ export const MealPlans = () => {
                           <X className="h-4 w-4" />
                         </Button>
                       )}
-                      {renderMealCard(weeklyMealPlan[selectedDay].breakfast, 'BREAKFAST', 'breakfast')}
+                      <MorningProtocolCard
+                        completed={dailyTracking.morningProtocol}
+                        onToggle={(index) => {
+                          const newProtocol = [...dailyTracking.morningProtocol];
+                          newProtocol[index] = !newProtocol[index];
+                          updateDailyTracking({ morningProtocol: newProtocol });
+                        }}
+                        enabledItems={enabledItems.morningProtocol}
+                        onRemoveItem={(index) => handleRemoveItem('morningProtocol', index)}
+                        onRestoreItem={(index) => handleRestoreItem('morningProtocol', index)}
+                        editMode={editMode}
+                      />
                     </div>
                   )}
                   
@@ -969,6 +1007,10 @@ export const MealPlans = () => {
                           newRitual[index] = !newRitual[index];
                           updateDailyTracking({ beforeBedRitual: newRitual });
                         }}
+                        enabledItems={enabledItems.beforeBedRitual}
+                        onRemoveItem={(index) => handleRemoveItem('beforeBedRitual', index)}
+                        onRestoreItem={(index) => handleRestoreItem('beforeBedRitual', index)}
+                        editMode={editMode}
                       />
                     </div>
                   )}
@@ -993,6 +1035,10 @@ export const MealPlans = () => {
                           newSupplements[index] = !newSupplements[index];
                           updateDailyTracking({ supplements: newSupplements });
                         }}
+                        enabledItems={enabledItems.supplements}
+                        onRemoveItem={(index) => handleRemoveItem('supplements', index)}
+                        onRestoreItem={(index) => handleRestoreItem('supplements', index)}
+                        editMode={editMode}
                       />
                     </div>
                   )}
@@ -1031,7 +1077,7 @@ export const MealPlans = () => {
                             size="sm"
                           >
                              <Plus className="w-4 h-4 mr-2" />
-                             Breakfast
+                             Morning Meal
                            </Button>
                         )}
                         {!visibleSections.supplements && (
