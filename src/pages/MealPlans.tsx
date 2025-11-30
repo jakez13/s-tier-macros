@@ -723,13 +723,14 @@ export const MealPlans = () => {
           <Button 
             onClick={() => {
               loadDurdenRoutine();
-              toast.success(durdenPlan === 'lean' ? "Durden's Lean Recipes Imported!" : "Durden's Bulk Recipes Imported!");
+              const isLean = userProfile?.goal === 'cut';
+              toast.success(isLean ? "Durden's Lean Recipes Imported!" : "Durden's Bulk Recipes Imported!");
             }}
             size="default"
             className="w-full sm:w-auto bg-[#ff4444] hover:bg-[#ff4444]/90 text-white font-bold"
           >
             <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-            {durdenPlan === 'lean' ? "Import Durden's Lean Recipes" : "Import Durden's Bulk Recipes"}
+            {userProfile?.goal === 'cut' ? "Import Durden's Lean Recipes" : "Import Durden's Bulk Recipes"}
           </Button>
         </div>
 
@@ -809,18 +810,16 @@ export const MealPlans = () => {
                       }}
                     />
                   ) : (
-                    weeklyMealPlan[selectedDay].breakfast && renderMealCard(weeklyMealPlan[selectedDay].breakfast, 'BREAKFAST', 'breakfast')
+                    renderMealCard(weeklyMealPlan[selectedDay].breakfast, 'BREAKFAST', 'breakfast')
                   )}
                   
                   {/* Lunch */}
-                  {weeklyMealPlan[selectedDay].lunch && (
-                    <div>
-                      {renderMealCard(weeklyMealPlan[selectedDay].lunch, 'LUNCH (12pm-1pm)', 'lunch')}
-                      <p className="text-xs text-muted-foreground text-center mt-1 font-semibold">
-                        140g+ protein minimum - avoid carbs
-                      </p>
-                    </div>
-                  )}
+                  <div>
+                    {renderMealCard(weeklyMealPlan[selectedDay].lunch, 'LUNCH (12pm-1pm)', 'lunch')}
+                    <p className="text-xs text-muted-foreground text-center mt-1 font-semibold">
+                      140g+ protein minimum - avoid carbs
+                    </p>
+                  </div>
                   
                   {/* After Lunch Fiber (Lean only) */}
                   {durdenPlan === 'lean' && (
@@ -831,14 +830,12 @@ export const MealPlans = () => {
                   )}
                   
                   {/* Dinner */}
-                  {weeklyMealPlan[selectedDay].dinner && (
-                    <div>
-                      {renderMealCard(weeklyMealPlan[selectedDay].dinner, 'DINNER (7:30pm)', 'dinner')}
-                      <p className="text-xs text-muted-foreground text-center mt-1 font-semibold">
-                        Can load more carbs
-                      </p>
-                    </div>
-                  )}
+                  <div>
+                    {renderMealCard(weeklyMealPlan[selectedDay].dinner, 'DINNER (7:30pm)', 'dinner')}
+                    <p className="text-xs text-muted-foreground text-center mt-1 font-semibold">
+                      Can load more carbs
+                    </p>
+                  </div>
                   
                   {/* Before Bed Ritual */}
                   <BeforeBedRitualCard
