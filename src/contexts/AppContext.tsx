@@ -59,11 +59,9 @@ interface DailyTracking {
   waterGlasses: number;
   afterLunchFiber: boolean;
   beforeBedRitual: boolean[];
-  mealsCompleted: {
-    breakfast: boolean;
-    lunch: boolean;
-    dinner: boolean;
-  };
+  breakfastCompleted?: boolean;
+  lunchCompleted?: boolean;
+  dinnerCompleted?: boolean;
 }
 
 interface AppContextType {
@@ -222,11 +220,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       waterGlasses: 0,
       afterLunchFiber: false,
       beforeBedRitual: [false, false, false],
-      mealsCompleted: {
-        breakfast: false,
-        lunch: false,
-        dinner: false,
-      }
+      breakfastCompleted: false,
+      lunchCompleted: false,
+      dinnerCompleted: false,
     };
   });
 

@@ -15,7 +15,6 @@ import { MorningProtocolCard } from '@/components/MorningProtocolCard';
 import { BeforeBedRitualCard } from '@/components/BeforeBedRitualCard';
 import { SupplementsTracker } from '@/components/SupplementsTracker';
 import { WaterIntakeTracker } from '@/components/WaterIntakeTracker';
-import { AfterLunchFiberCard } from '@/components/AfterLunchFiberCard';
 import { Checkbox } from '@/components/ui/checkbox';
 
 type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
@@ -489,14 +488,21 @@ export const MealPlans = () => {
               <div className="text-xl sm:text-2xl font-bold" style={{ color: '#3b82f6' }}>{Math.round(recipe.macros.protein)}g</div>
               <div className="text-[8px] sm:text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5 sm:mt-1">Protein</div>
             </div>
-            <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-              <div className="text-xl sm:text-2xl font-bold" style={{ color: '#10b981' }}>{Math.round(recipe.macros.carbs)}g</div>
-              <div className="text-[8px] sm:text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5 sm:mt-1">Carbs</div>
-            </div>
-            <div className="text-center p-2 sm:p-3 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-              <div className="text-xl sm:text-2xl font-bold" style={{ color: '#f59e0b' }}>{Math.round(recipe.macros.fats)}g</div>
-              <div className="text-[8px] sm:text-[9px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5 sm:mt-1">Fats</div>
-            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/30">
+            <Checkbox
+              checked={dailyTracking[`${mealType}Completed` as keyof typeof dailyTracking] as boolean || false}
+              onCheckedChange={(checked) => {
+                updateDailyTracking({ [`${mealType}Completed`]: checked });
+              }}
+            />
+            <label className="text-sm text-foreground cursor-pointer flex-1" onClick={() => {
+              const current = dailyTracking[`${mealType}Completed` as keyof typeof dailyTracking] as boolean;
+              updateDailyTracking({ [`${mealType}Completed`]: !current });
+            }}>
+              Completed
+            </label>
           </div>
 
           <Button
@@ -519,86 +525,103 @@ export const MealPlans = () => {
 
   const renderDailySummary = () => {
     if (!macros) return null;
-
-    const dayTotals = calculateDayTotals(weeklyMealPlan[selectedDay]);
     
     // Calculate compliance metrics
     const morningProtocolComplete = dailyTracking.morningProtocol.every(x => x);
+    const morningProtocolCount = dailyTracking.morningProtocol.filter(Boolean).length;
     const supplementsCount = dailyTracking.supplements.filter(Boolean).length;
     const beforeBedComplete = dailyTracking.beforeBedRitual.every(x => x);
-    const waterProgress = Math.round((dailyTracking.waterGlasses / 8) * 100);
+    const lunchCompleted = dailyTracking.lunchCompleted || false;
+    const dinnerCompleted = dailyTracking.dinnerCompleted || false;
+    const afterLunchFiber = dailyTracking.afterLunchFiber || false;
     
-    const mealsCount = [
-      weeklyMealPlan[selectedDay].breakfast || morningProtocolComplete,
-      weeklyMealPlan[selectedDay].lunch,
-      weeklyMealPlan[selectedDay].dinner,
+    const totalItems = durdenPlan === 'lean' ? 7 : 6;
+    const completedItems = [
+      morningProtocolComplete,
+      lunchCompleted,
+      durdenPlan === 'lean' ? afterLunchFiber : true,
+      dinnerCompleted,
+      beforeBedComplete,
+      supplementsCount === 6,
+      dailyTracking.waterGlasses >= 8,
     ].filter(Boolean).length;
     
-    const totalCompliance = Math.round(
-      (mealsCount / 3 * 25) +
-      (supplementsCount / 6 * 25) +
-      (waterProgress / 100 * 25) +
-      (beforeBedComplete ? 25 : 0)
-    );
+    const totalCompliance = Math.round((completedItems / totalItems) * 100);
 
     return (
       <Card className="p-6 bg-gradient-to-br from-primary/5 via-card to-card border-2 border-primary/20 shadow-xl">
         <div className="space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-border/50">
             <h3 className="text-lg font-bold text-foreground">TODAY'S COMPLIANCE</h3>
-            {complianceStreak > 0 && (
-              <div className="flex items-center gap-1 text-[#ff4444]">
-                <Flame className="w-4 h-4" />
-                <span className="text-sm font-bold">{complianceStreak} days</span>
+          </div>
+
+          <div className="space-y-2">
+            {durdenPlan === 'lean' && (
+              <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={morningProtocolComplete} disabled />
+                  <span className="text-sm">Morning Protocol</span>
+                </div>
+                <span className="text-xs text-muted-foreground">{morningProtocolCount}/4</span>
               </div>
             )}
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
-              <span className="text-sm font-medium">Meals Completed</span>
-              <span className="text-sm font-bold text-primary">{mealsCount}/3 ✓</span>
+            
+            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
+              <div className="flex items-center gap-2">
+                <Checkbox checked={lunchCompleted} disabled />
+                <span className="text-sm">Lunch Completed</span>
+              </div>
+              <span className="text-xs text-muted-foreground">{lunchCompleted ? '✓' : '—'}</span>
             </div>
             
-            <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
-              <span className="text-sm font-medium">Supplements</span>
-              <span className="text-sm font-bold text-primary">{supplementsCount}/6 ✓</span>
+            {durdenPlan === 'lean' && (
+              <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={afterLunchFiber} disabled />
+                  <span className="text-sm">Fruit After Lunch</span>
+                </div>
+                <span className="text-xs text-muted-foreground">{afterLunchFiber ? '✓' : '—'}</span>
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
+              <div className="flex items-center gap-2">
+                <Checkbox checked={dinnerCompleted} disabled />
+                <span className="text-sm">Dinner Completed</span>
+              </div>
+              <span className="text-xs text-muted-foreground">{dinnerCompleted ? '✓' : '—'}</span>
             </div>
             
-            <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
-              <span className="text-sm font-medium">Water Goal</span>
-              <span className="text-sm font-bold text-primary">{dailyTracking.waterGlasses}/8 ✓</span>
+            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
+              <div className="flex items-center gap-2">
+                <Checkbox checked={beforeBedComplete} disabled />
+                <span className="text-sm">Before Bed Ritual</span>
+              </div>
+              <span className="text-xs text-muted-foreground">{beforeBedComplete ? '✓' : '—'}</span>
             </div>
             
-            <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
-              <span className="text-sm font-medium">Before Bed Ritual</span>
-              <span className={`text-sm font-bold ${beforeBedComplete ? 'text-primary' : 'text-muted-foreground'}`}>
-                {beforeBedComplete ? '✓' : '—'}
-              </span>
+            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
+              <div className="flex items-center gap-2">
+                <Checkbox checked={supplementsCount === 6} disabled />
+                <span className="text-sm">Supplements</span>
+              </div>
+              <span className="text-xs text-muted-foreground">{supplementsCount}/6</span>
             </div>
             
-            <div className="pt-3 border-t border-border/50">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-bold">Overall Compliance</span>
-                <span className={`text-lg font-bold ${totalCompliance >= 80 ? 'text-primary' : 'text-yellow-500'}`}>
+            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-background/30 transition-colors">
+              <div className="flex items-center gap-2">
+                <Checkbox checked={dailyTracking.waterGlasses >= 8} disabled />
+                <span className="text-sm">Water Goal</span>
+              </div>
+              <span className="text-xs text-muted-foreground">{dailyTracking.waterGlasses}/8</span>
+            </div>
+            
+            <div className="pt-3 border-t border-border/50 mt-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold">Overall</span>
+                <span className={`text-xl font-bold ${totalCompliance >= 80 ? 'text-primary' : 'text-yellow-500'}`}>
                   {totalCompliance}%
                 </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-border/50">
-            <p className="text-xs text-center text-muted-foreground mb-2">
-              Goal: {durdenPlan === 'lean' ? 'Cut (Lose)' : 'Bulk (Gain)'}
-            </p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="text-center p-2 rounded bg-background/50">
-                <div className="font-bold text-foreground">{Math.round(dayTotals.calories)}</div>
-                <div className="text-muted-foreground">Calories</div>
-              </div>
-              <div className="text-center p-2 rounded bg-background/50">
-                <div className="font-bold text-foreground">{Math.round(dayTotals.protein)}g</div>
-                <div className="text-muted-foreground">Protein</div>
               </div>
             </div>
           </div>
@@ -814,16 +837,23 @@ export const MealPlans = () => {
                   )}
                   
                   {/* Lunch */}
-                  {renderMealCard(weeklyMealPlan[selectedDay].lunch, 'LUNCH', 'lunch')}
-                  
-                  
-                  {/* After Lunch Fiber (Lean only) */}
-                  {durdenPlan === 'lean' && (
-                    <AfterLunchFiberCard
-                      completed={dailyTracking.afterLunchFiber}
-                      onToggle={() => updateDailyTracking({ afterLunchFiber: !dailyTracking.afterLunchFiber })}
-                    />
-                  )}
+                  <div className="space-y-2">
+                    {renderMealCard(weeklyMealPlan[selectedDay].lunch, 'LUNCH', 'lunch')}
+                    {durdenPlan === 'lean' && (
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-background/30 border border-border/30">
+                        <Checkbox
+                          checked={dailyTracking.afterLunchFiber}
+                          onCheckedChange={(checked) => updateDailyTracking({ afterLunchFiber: checked as boolean })}
+                        />
+                        <label 
+                          className="text-xs text-muted-foreground cursor-pointer flex-1" 
+                          onClick={() => updateDailyTracking({ afterLunchFiber: !dailyTracking.afterLunchFiber })}
+                        >
+                          ☐ Ate fruit after for fiber
+                        </label>
+                      </div>
+                    )}
+                  </div>
                   
                   {/* Dinner */}
                   {renderMealCard(weeklyMealPlan[selectedDay].dinner, 'DINNER', 'dinner')}
@@ -852,8 +882,15 @@ export const MealPlans = () => {
                   {/* Water Intake */}
                   <WaterIntakeTracker
                     glasses={dailyTracking.waterGlasses}
-                    onGlassClick={(index) => {
-                      updateDailyTracking({ waterGlasses: index < dailyTracking.waterGlasses ? index : index + 1 });
+                    onIncrease={() => {
+                      if (dailyTracking.waterGlasses < 8) {
+                        updateDailyTracking({ waterGlasses: dailyTracking.waterGlasses + 1 });
+                      }
+                    }}
+                    onDecrease={() => {
+                      if (dailyTracking.waterGlasses > 0) {
+                        updateDailyTracking({ waterGlasses: dailyTracking.waterGlasses - 1 });
+                      }
                     }}
                   />
                 </div>
