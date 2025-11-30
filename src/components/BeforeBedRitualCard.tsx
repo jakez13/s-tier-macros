@@ -1,24 +1,30 @@
 import { Card } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
-import { Moon, AlertCircle } from "lucide-react";
+import { Moon, AlertCircle, X, Plus } from "lucide-react";
 
 interface BeforeBedRitualCardProps {
   completed: boolean[];
   onToggle: (index: number) => void;
+  enabledItems: boolean[];
+  onRemoveItem: (index: number) => void;
+  onRestoreItem: (index: number) => void;
+  editMode: boolean;
 }
 
-export const BeforeBedRitualCard = ({ completed, onToggle }: BeforeBedRitualCardProps) => {
+export const BeforeBedRitualCard = ({ completed, onToggle, enabledItems, onRemoveItem, onRestoreItem, editMode }: BeforeBedRitualCardProps) => {
   const items = [
     { name: "2 kiwis with blueberries", calories: 120 },
     { name: "Protein shake (1-2 scoops)", calories: 150 },
     { name: "ALWAYS with creatine", calories: 0 }
   ];
 
-  const completedCount = completed.filter(Boolean).length;
-  const allCompleted = completedCount === items.length;
+  const enabledCount = enabledItems.filter(Boolean).length;
+  const completedCount = completed.filter((c, i) => c && enabledItems[i]).length;
+  const allCompleted = completedCount === enabledCount && enabledCount > 0;
   const totalCalories = items.reduce((sum, item, index) => 
-    sum + (completed[index] ? item.calories : 0), 0
+    sum + (completed[index] && enabledItems[index] ? item.calories : 0), 0
   );
+  const hiddenItems = enabledItems.filter(item => !item).length;
 
   return (
     <Card className={`p-4 sm:p-6 border-2 ${allCompleted ? 'border-primary/50' : 'border-[#ff4444]'} bg-gradient-to-br from-secondary/80 to-secondary/40`}>
@@ -36,7 +42,7 @@ export const BeforeBedRitualCard = ({ completed, onToggle }: BeforeBedRitualCard
         </div>
         <div className="text-right">
           <div className={`text-sm font-semibold ${allCompleted ? 'text-primary' : 'text-[#ff4444]'}`}>
-            {completedCount}/{items.length}
+            {completedCount}/{enabledCount}
           </div>
           <div className="text-xs text-muted-foreground">
             {totalCalories} cal
@@ -52,22 +58,55 @@ export const BeforeBedRitualCard = ({ completed, onToggle }: BeforeBedRitualCard
 
       <div className="space-y-3">
         {items.map((item, index) => (
-          <div key={index} className="flex items-start gap-3 p-2 rounded-lg hover:bg-background/50 transition-colors">
-            <Checkbox
-              checked={completed[index]}
-              onCheckedChange={() => onToggle(index)}
-              className="mt-0.5"
-            />
-            <label className="text-sm font-semibold text-foreground cursor-pointer flex-1" onClick={() => onToggle(index)}>
-              {item.name}
-            </label>
-            {item.calories > 0 && (
-              <span className="text-xs text-muted-foreground font-medium">
-                {item.calories} cal
-              </span>
-            )}
-          </div>
+          enabledItems[index] && (
+            <div 
+              key={index} 
+              className={`relative flex items-start gap-3 p-2 rounded-lg hover:bg-background/50 transition-all ${editMode ? 'animate-wiggle' : ''}`}
+            >
+              <Checkbox
+                checked={completed[index]}
+                onCheckedChange={() => onToggle(index)}
+                className="mt-0.5"
+                disabled={editMode}
+              />
+              <label className="text-sm font-semibold text-foreground cursor-pointer flex-1" onClick={() => !editMode && onToggle(index)}>
+                {item.name}
+              </label>
+              {item.calories > 0 && (
+                <span className="text-xs text-muted-foreground font-medium">
+                  {item.calories} cal
+                </span>
+              )}
+              {editMode && (
+                <button
+                  onClick={() => onRemoveItem(index)}
+                  className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:scale-110 transition-transform z-10"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          )
         ))}
+        {hiddenItems > 0 && (
+          <div className="p-2 border-2 border-dashed border-border rounded-lg">
+            <p className="text-xs text-muted-foreground text-center mb-2">{hiddenItems} item{hiddenItems > 1 ? 's' : ''} hidden</p>
+            <div className="flex flex-wrap gap-2">
+              {items.map((item, index) => (
+                !enabledItems[index] && (
+                  <button
+                    key={index}
+                    onClick={() => onRestoreItem(index)}
+                    className="text-xs px-2 py-1 bg-muted hover:bg-muted/80 rounded-md flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" />
+                    {item.name}
+                  </button>
+                )
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );

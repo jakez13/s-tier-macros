@@ -68,7 +68,11 @@ interface DailyTracking {
     water?: boolean;
     beforeBed?: boolean;
   };
-  selectedMorningMeal?: string;
+  enabledItems?: {
+    morningProtocol?: boolean[];
+    supplements?: boolean[];
+    beforeBedRitual?: boolean[];
+  };
 }
 
 interface AppContextType {
@@ -102,7 +106,7 @@ interface AppContextType {
   dailyTracking: DailyTracking;
   updateDailyTracking: (updates: Partial<DailyTracking>) => void;
   updateSectionVisibility: (section: string, visible: boolean) => void;
-  updateSelectedMorningMeal: (mealName: string) => void;
+  updateItemVisibility: (section: 'morningProtocol' | 'supplements' | 'beforeBedRitual', index: number, visible: boolean) => void;
   complianceStreak: number;
 }
 
@@ -238,7 +242,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         water: true,
         beforeBed: true,
       },
-      selectedMorningMeal: 'Morning Protocol'
+      enabledItems: {
+        morningProtocol: [true, true, true, true],
+        supplements: [true, true, true, true, true, true],
+        beforeBedRitual: [true, true, true],
+      }
     };
   });
 
@@ -390,10 +398,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-  const updateSelectedMorningMeal = (mealName: string) => {
+  const updateItemVisibility = (section: 'morningProtocol' | 'supplements' | 'beforeBedRitual', index: number, visible: boolean) => {
+    const enabledItems = dailyTracking.enabledItems || {
+      morningProtocol: [true, true, true, true],
+      supplements: [true, true, true, true, true, true],
+      beforeBedRitual: [true, true, true],
+    };
+    
+    const newEnabledItems = {
+      ...enabledItems,
+      [section]: enabledItems[section]?.map((item, i) => i === index ? visible : item) || []
+    };
+    
     const newTracking = {
       ...dailyTracking,
-      selectedMorningMeal: mealName
+      enabledItems: newEnabledItems
     };
     setDailyTrackingState(newTracking);
     
@@ -476,7 +495,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         dailyTracking,
         updateDailyTracking,
         updateSectionVisibility,
-        updateSelectedMorningMeal,
+        updateItemVisibility,
         complianceStreak,
       }}
     >
