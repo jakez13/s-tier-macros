@@ -51,6 +51,19 @@ export interface SavedMealPlan {
   createdAt: string;
 }
 
+interface DailyTracking {
+  morningProtocol: boolean[];
+  supplements: boolean[];
+  waterGlasses: number;
+  afterLunchFiber: boolean;
+  beforeBedRitual: boolean[];
+  mealsCompleted: {
+    breakfast: boolean;
+    lunch: boolean;
+    dinner: boolean;
+  };
+}
+
 interface AppContextType {
   userProfile: UserProfile | null;
   setUserProfile: (profile: UserProfile) => void;
@@ -77,6 +90,11 @@ interface AppContextType {
   setMealsSelected: (selected: boolean) => void;
   resetAllData: () => void;
   loadDurdenRoutine: () => void;
+  durdenPlan: 'lean' | 'bulk';
+  setDurdenPlan: (plan: 'lean' | 'bulk') => void;
+  dailyTracking: DailyTracking;
+  updateDailyTracking: (updates: Partial<DailyTracking>) => void;
+  complianceStreak: number;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -172,6 +190,50 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return saved ? JSON.parse(saved) : false;
     } catch {
       return false;
+    }
+  });
+
+  const [durdenPlan, setDurdenPlanState] = useState<'lean' | 'bulk'>(() => {
+    try {
+      const saved = localStorage.getItem('durdenPlan');
+      return saved ? JSON.parse(saved) : 'lean';
+    } catch {
+      return 'lean';
+    }
+  });
+
+  const [dailyTracking, setDailyTrackingState] = useState<DailyTracking>(() => {
+    try {
+      const saved = localStorage.getItem('dailyTracking');
+      const today = new Date().toDateString();
+      const savedData = saved ? JSON.parse(saved) : null;
+      
+      // Reset if it's a new day
+      if (savedData && savedData.date === today) {
+        return savedData.tracking;
+      }
+    } catch {}
+    
+    return {
+      morningProtocol: [false, false, false, false],
+      supplements: [false, false, false, false, false, false],
+      waterGlasses: 0,
+      afterLunchFiber: false,
+      beforeBedRitual: [false, false, false],
+      mealsCompleted: {
+        breakfast: false,
+        lunch: false,
+        dinner: false,
+      }
+    };
+  });
+
+  const [complianceStreak, setComplianceStreakState] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('complianceStreak');
+      return saved ? JSON.parse(saved) : 0;
+    } catch {
+      return 0;
     }
   });
 
@@ -274,6 +336,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('mealsSelected', JSON.stringify(selected));
   };
 
+  const setDurdenPlan = (plan: 'lean' | 'bulk') => {
+    setDurdenPlanState(plan);
+    localStorage.setItem('durdenPlan', JSON.stringify(plan));
+  };
+
+  const updateDailyTracking = (updates: Partial<DailyTracking>) => {
+    const newTracking = { ...dailyTracking, ...updates };
+    setDailyTrackingState(newTracking);
+    
+    const today = new Date().toDateString();
+    localStorage.setItem('dailyTracking', JSON.stringify({
+      date: today,
+      tracking: newTracking
+    }));
+  };
+
   const resetAllData = () => {
     localStorage.clear();
     window.location.href = '/';
@@ -341,6 +419,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setMealsSelected,
         resetAllData,
         loadDurdenRoutine,
+        durdenPlan,
+        setDurdenPlan,
+        dailyTracking,
+        updateDailyTracking,
+        complianceStreak,
       }}
     >
       {children}
