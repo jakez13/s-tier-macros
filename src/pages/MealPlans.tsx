@@ -5,7 +5,7 @@ import { RECIPES, Recipe } from '@/data/recipesData';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
-import { ChevronLeft, ChevronRight, Settings, User, Activity, TrendingUp, Target, Sparkles, Check, Loader2, Circle, RefreshCw, Clock, ChefHat, Eye, Flame } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, User, Activity, TrendingUp, Target, Sparkles, Check, Loader2, Circle, RefreshCw, Clock, ChefHat, Eye, Flame, X, Edit3, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { DailyMealPlan } from '@/contexts/AppContext';
 import { AiMealDialog } from '@/components/AiMealDialog';
@@ -57,6 +57,8 @@ export const MealPlans = () => {
     setDurdenPlan,
     dailyTracking,
     updateDailyTracking,
+    updateSectionVisibility,
+    updateSelectedMorningMeal,
     complianceStreak,
   } = useApp();
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('monday');
@@ -64,6 +66,8 @@ export const MealPlans = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [showMorningMealSelector, setShowMorningMealSelector] = useState(false);
   const [viewingRecipe, setViewingRecipe] = useState<Recipe | null>(null);
   const [customRecipes, setCustomRecipes] = useState<Recipe[]>(() => {
     const saved = localStorage.getItem('customRecipes');
@@ -74,6 +78,37 @@ export const MealPlans = () => {
     mealType: 'breakfast' | 'lunch' | 'dinner' | 'snacks';
   } | null>(null);
   const [mealFilter, setMealFilter] = useState<'breakfast' | 'lunch' | 'dinner' | 'snacks' | 'all'>('all');
+
+  const visibleSections = dailyTracking.visibleSections || {
+    morningMeal: true,
+    supplements: true,
+    water: true,
+    beforeBed: true,
+  };
+
+  const morningMealOptions = [
+    'Morning Protocol',
+    'Power Breakfast',
+    'Quick Start',
+    'Keto Morning',
+  ];
+
+  const handleRemoveSection = (section: string) => {
+    updateSectionVisibility(section, false);
+    toast.success(`${section} section removed`);
+  };
+
+  const handleRestoreSection = (section: string) => {
+    updateSectionVisibility(section, true);
+    toast.success(`${section} section restored`);
+  };
+
+  const handleChangeMorningMeal = (mealName: string) => {
+    updateSelectedMorningMeal(mealName);
+    setShowMorningMealSelector(false);
+    toast.success(`Morning meal changed to ${mealName}`);
+  };
+
   const [loadingSteps, setLoadingSteps] = useState<LoadingStep[]>([
     { label: 'Analyzing your favorite recipes', status: 'pending' },
     { label: 'Finding optimal macro combinations', status: 'pending' },
@@ -820,6 +855,14 @@ export const MealPlans = () => {
                 Import Durden's Bulk Recipes
               </Button>
             )}
+            <Button
+              onClick={() => setEditMode(!editMode)}
+              variant={editMode ? "default" : "outline"}
+              className="flex-1 sm:flex-none font-bold"
+            >
+              <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              {editMode ? 'Done' : 'Edit Sections'}
+            </Button>
           </div>
         </div>
 
@@ -889,14 +932,55 @@ export const MealPlans = () => {
               <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
                 <div className="lg:col-span-2 space-y-4">
                   {/* Morning Meal - Always show on all plans */}
-                  <MorningProtocolCard
-                    completed={dailyTracking.morningProtocol}
-                    onToggle={(index) => {
-                      const newProtocol = [...dailyTracking.morningProtocol];
-                      newProtocol[index] = !newProtocol[index];
-                      updateDailyTracking({ morningProtocol: newProtocol });
-                    }}
-                  />
+                  {visibleSections.morningMeal && (
+                    <div className={`relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
+                      {editMode && (
+                        <div className="absolute -top-2 -right-2 z-10 flex gap-2">
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="h-7 w-7 rounded-full shadow-lg"
+                            onClick={() => handleRemoveSection('morningMeal')}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            className="h-7 w-7 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+                            onClick={() => setShowMorningMealSelector(!showMorningMealSelector)}
+                          >
+                            <Edit3 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                      {showMorningMealSelector && editMode && (
+                        <Card className="absolute top-0 left-0 right-0 z-20 p-4 bg-background border-2 border-primary shadow-xl">
+                          <h4 className="font-bold mb-3">Select Morning Meal</h4>
+                          <div className="space-y-2">
+                            {morningMealOptions.map((option) => (
+                              <Button
+                                key={option}
+                                onClick={() => handleChangeMorningMeal(option)}
+                                variant={(dailyTracking.selectedMorningMeal || 'Morning Protocol') === option ? "default" : "outline"}
+                                className="w-full justify-start"
+                              >
+                                {option}
+                              </Button>
+                            ))}
+                          </div>
+                        </Card>
+                      )}
+                      <MorningProtocolCard
+                        completed={dailyTracking.morningProtocol}
+                        onToggle={(index) => {
+                          const newProtocol = [...dailyTracking.morningProtocol];
+                          newProtocol[index] = !newProtocol[index];
+                          updateDailyTracking({ morningProtocol: newProtocol });
+                        }}
+                        mealName={dailyTracking.selectedMorningMeal || 'Morning Protocol'}
+                      />
+                    </div>
+                  )}
                   
                   {/* Lunch */}
                   <div className="space-y-2">
@@ -920,32 +1004,123 @@ export const MealPlans = () => {
                   
                   
                   {/* Before Bed Ritual */}
-                  <BeforeBedRitualCard
-                    completed={dailyTracking.beforeBedRitual}
-                    onToggle={(index) => {
-                      const newRitual = [...dailyTracking.beforeBedRitual];
-                      newRitual[index] = !newRitual[index];
-                      updateDailyTracking({ beforeBedRitual: newRitual });
-                    }}
-                  />
+                  {visibleSections.beforeBed && (
+                    <div className={`relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
+                      {editMode && (
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="absolute -top-2 -right-2 z-10 h-7 w-7 rounded-full shadow-lg"
+                          onClick={() => handleRemoveSection('beforeBed')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <BeforeBedRitualCard
+                        completed={dailyTracking.beforeBedRitual}
+                        onToggle={(index) => {
+                          const newRitual = [...dailyTracking.beforeBedRitual];
+                          newRitual[index] = !newRitual[index];
+                          updateDailyTracking({ beforeBedRitual: newRitual });
+                        }}
+                      />
+                    </div>
+                  )}
                   
                   {/* Supplements */}
-                  <SupplementsTracker
-                    completed={dailyTracking.supplements}
-                    onToggle={(index) => {
-                      const newSupplements = [...dailyTracking.supplements];
-                      newSupplements[index] = !newSupplements[index];
-                      updateDailyTracking({ supplements: newSupplements });
-                    }}
-                  />
+                  {visibleSections.supplements && (
+                    <div className={`relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
+                      {editMode && (
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="absolute -top-2 -right-2 z-10 h-7 w-7 rounded-full shadow-lg"
+                          onClick={() => handleRemoveSection('supplements')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <SupplementsTracker
+                        completed={dailyTracking.supplements}
+                        onToggle={(index) => {
+                          const newSupplements = [...dailyTracking.supplements];
+                          newSupplements[index] = !newSupplements[index];
+                          updateDailyTracking({ supplements: newSupplements });
+                        }}
+                      />
+                    </div>
+                  )}
                   
                   {/* Water Intake */}
-                  <WaterIntakeTracker
-                    waterGlasses={dailyTracking.waterGlasses}
-                    onWaterChange={(newValue) => {
-                      updateDailyTracking({ waterGlasses: newValue });
-                    }}
-                  />
+                  {visibleSections.water && (
+                    <div className={`relative ${editMode ? 'animate-[wiggle_0.3s_ease-in-out_infinite]' : ''}`}>
+                      {editMode && (
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="absolute -top-2 -right-2 z-10 h-7 w-7 rounded-full shadow-lg"
+                          onClick={() => handleRemoveSection('water')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <WaterIntakeTracker
+                        waterGlasses={dailyTracking.waterGlasses}
+                        onWaterChange={(newValue) => {
+                          updateDailyTracking({ waterGlasses: newValue });
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Restore Sections Card */}
+                  {(!visibleSections.morningMeal || !visibleSections.supplements || !visibleSections.water || !visibleSections.beforeBed) && (
+                    <Card className="p-4 border-dashed">
+                      <h4 className="font-bold mb-3 text-muted-foreground">Restore Sections</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {!visibleSections.morningMeal && (
+                          <Button
+                            onClick={() => handleRestoreSection('morningMeal')}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Morning Meal
+                          </Button>
+                        )}
+                        {!visibleSections.supplements && (
+                          <Button
+                            onClick={() => handleRestoreSection('supplements')}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Supplements
+                          </Button>
+                        )}
+                        {!visibleSections.water && (
+                          <Button
+                            onClick={() => handleRestoreSection('water')}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Water Intake
+                          </Button>
+                        )}
+                        {!visibleSections.beforeBed && (
+                          <Button
+                            onClick={() => handleRestoreSection('beforeBed')}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Before Bed Ritual
+                          </Button>
+                        )}
+                      </div>
+                    </Card>
+                  )}
                 </div>
 
                 <div className="lg:col-span-1 space-y-6">

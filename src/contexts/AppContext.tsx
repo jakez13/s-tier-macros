@@ -62,6 +62,13 @@ interface DailyTracking {
   breakfastCompleted?: boolean;
   lunchCompleted?: boolean;
   dinnerCompleted?: boolean;
+  visibleSections?: {
+    morningMeal?: boolean;
+    supplements?: boolean;
+    water?: boolean;
+    beforeBed?: boolean;
+  };
+  selectedMorningMeal?: string;
 }
 
 interface AppContextType {
@@ -94,6 +101,8 @@ interface AppContextType {
   setDurdenPlan: (plan: 'lean' | 'bulk') => void;
   dailyTracking: DailyTracking;
   updateDailyTracking: (updates: Partial<DailyTracking>) => void;
+  updateSectionVisibility: (section: string, visible: boolean) => void;
+  updateSelectedMorningMeal: (mealName: string) => void;
   complianceStreak: number;
 }
 
@@ -223,6 +232,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       breakfastCompleted: false,
       lunchCompleted: false,
       dinnerCompleted: false,
+      visibleSections: {
+        morningMeal: true,
+        supplements: true,
+        water: true,
+        beforeBed: true,
+      },
+      selectedMorningMeal: 'Morning Protocol'
     };
   });
 
@@ -357,6 +373,37 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const updateSectionVisibility = (section: string, visible: boolean) => {
+    const newTracking = {
+      ...dailyTracking,
+      visibleSections: {
+        ...dailyTracking.visibleSections,
+        [section]: visible
+      }
+    };
+    setDailyTrackingState(newTracking);
+    
+    const today = new Date().toDateString();
+    localStorage.setItem('dailyTracking', JSON.stringify({
+      date: today,
+      tracking: newTracking
+    }));
+  };
+
+  const updateSelectedMorningMeal = (mealName: string) => {
+    const newTracking = {
+      ...dailyTracking,
+      selectedMorningMeal: mealName
+    };
+    setDailyTrackingState(newTracking);
+    
+    const today = new Date().toDateString();
+    localStorage.setItem('dailyTracking', JSON.stringify({
+      date: today,
+      tracking: newTracking
+    }));
+  };
+
   const resetAllData = () => {
     localStorage.clear();
     window.location.href = '/';
@@ -428,6 +475,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setDurdenPlan,
         dailyTracking,
         updateDailyTracking,
+        updateSectionVisibility,
+        updateSelectedMorningMeal,
         complianceStreak,
       }}
     >

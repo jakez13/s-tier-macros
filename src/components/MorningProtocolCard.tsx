@@ -7,9 +7,10 @@ import { useState } from "react";
 interface MorningProtocolCardProps {
   completed: boolean[];
   onToggle: (index: number) => void;
+  mealName?: string;
 }
 
-export const MorningProtocolCard = ({ completed, onToggle }: MorningProtocolCardProps) => {
+export const MorningProtocolCard = ({ completed, onToggle, mealName = 'Morning Protocol' }: MorningProtocolCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   
   const items = [
@@ -34,7 +35,7 @@ export const MorningProtocolCard = ({ completed, onToggle }: MorningProtocolCard
             </div>
             <div className="flex-1 text-left">
               <h3 className="text-lg font-bold text-foreground">MORNING MEAL</h3>
-              <p className="text-xs text-muted-foreground">Morning Protocol</p>
+              <p className="text-xs text-muted-foreground">{mealName}</p>
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
