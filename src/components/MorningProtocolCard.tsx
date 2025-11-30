@@ -7,12 +7,14 @@ interface MorningProtocolCardProps {
   onToggle: (index: number) => void;
 }
 
+const MORNING_PROTOCOL_CALORIES = 590; // Approximate total calories
+
 export const MorningProtocolCard = ({ completed, onToggle }: MorningProtocolCardProps) => {
   const items = [
-    "2 tbsp CHIA seeds in water with electrolytes",
-    "Cup of kefir",
-    "Banana",
-    "1-2 scoops raw honey before gym"
+    { text: "2 tbsp CHIA seeds in water with electrolytes", calories: 140 },
+    { text: "Cup of kefir", calories: 150 },
+    { text: "Banana", calories: 105 },
+    { text: "1-2 scoops raw honey before gym", calories: 195 }
   ];
 
   const completedCount = completed.filter(Boolean).length;
@@ -23,9 +25,9 @@ export const MorningProtocolCard = ({ completed, onToggle }: MorningProtocolCard
         <div className="bg-primary/20 p-2 rounded-lg">
           <Sun className="w-5 h-5 text-primary" />
         </div>
-        <div>
+        <div className="flex-1">
           <h3 className="text-lg font-bold text-foreground">Morning Protocol</h3>
-          <p className="text-sm text-muted-foreground">Upon waking</p>
+          <p className="text-sm text-muted-foreground">Upon waking • ~{MORNING_PROTOCOL_CALORIES} cal</p>
         </div>
         <div className="ml-auto text-sm font-semibold text-primary">
           {completedCount}/{items.length}
@@ -41,7 +43,8 @@ export const MorningProtocolCard = ({ completed, onToggle }: MorningProtocolCard
               className="mt-0.5"
             />
             <label className="text-sm text-foreground cursor-pointer flex-1" onClick={() => onToggle(index)}>
-              {item}
+              {item.text}
+              <span className="text-xs text-muted-foreground ml-2">({item.calories} cal)</span>
             </label>
           </div>
         ))}

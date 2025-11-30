@@ -719,8 +719,37 @@ export const MealPlans = () => {
           </div>
           
           <PlanSelector selectedPlan={durdenPlan} onPlanChange={setDurdenPlan} />
+
+          {/* Daily Calorie Target */}
+          <Card className="p-4 sm:p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Today's Calorie Allowance</h3>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-3xl font-bold text-foreground">{weeklyMealPlan[selectedDay].calories || 0}</span>
+                  <span className="text-lg text-muted-foreground">/ {userProfile?.calories || 0}</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-muted-foreground">Remaining</div>
+                <div className="text-2xl font-bold text-primary">
+                  {(userProfile?.calories || 0) - (weeklyMealPlan[selectedDay].calories || 0)}
+                </div>
+              </div>
+            </div>
+            <div className="mt-3">
+              <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-500"
+                  style={{ 
+                    width: `${Math.min(((weeklyMealPlan[selectedDay].calories || 0) / (userProfile?.calories || 1)) * 100, 100)}%` 
+                  }}
+                />
+              </div>
+            </div>
+          </Card>
           
-          <Button 
+          <Button
             onClick={() => {
               loadDurdenRoutine();
               const isLean = userProfile?.goal === 'cut';

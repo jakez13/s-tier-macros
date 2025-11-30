@@ -7,6 +7,7 @@ export interface UserProfile {
   age: number;
   activityLevel: 'minimal' | 'light' | 'moderate' | 'active';
   goal: 'bulk' | 'maintain' | 'cut';
+  calories?: number;
 }
 
 export interface Macros {
@@ -32,6 +33,7 @@ export interface DailyMealPlan {
   lunch: number | null;
   dinner: number | null;
   snacks: number | null;
+  calories?: number;
 }
 
 export interface WeeklyMealPlan {
@@ -247,6 +249,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const setMacros = (newMacros: Macros) => {
     setMacrosState(newMacros);
     localStorage.setItem('macros', JSON.stringify(newMacros));
+    
+    // Auto-sync calories to userProfile
+    if (userProfile) {
+      const updatedProfile = { ...userProfile, calories: newMacros.calories };
+      setUserProfileState(updatedProfile);
+      localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+    }
   };
 
   const setSelectedRecipes = (recipeIds: number[]) => {
