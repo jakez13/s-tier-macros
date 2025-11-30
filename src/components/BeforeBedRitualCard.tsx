@@ -9,13 +9,16 @@ interface BeforeBedRitualCardProps {
 
 export const BeforeBedRitualCard = ({ completed, onToggle }: BeforeBedRitualCardProps) => {
   const items = [
-    "3 kiwis with blueberries ONLY",
-    "Protein shake (1-2 scoops)",
-    "ALWAYS with creatine"
+    { name: "2 kiwis with blueberries", calories: 120 },
+    { name: "Protein shake (1-2 scoops)", calories: 150 },
+    { name: "ALWAYS with creatine", calories: 0 }
   ];
 
   const completedCount = completed.filter(Boolean).length;
   const allCompleted = completedCount === items.length;
+  const totalCalories = items.reduce((sum, item, index) => 
+    sum + (completed[index] ? item.calories : 0), 0
+  );
 
   return (
     <Card className={`p-4 sm:p-6 border-2 ${allCompleted ? 'border-primary/50' : 'border-[#ff4444]'} bg-gradient-to-br from-secondary/80 to-secondary/40`}>
@@ -29,10 +32,15 @@ export const BeforeBedRitualCard = ({ completed, onToggle }: BeforeBedRitualCard
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-bold text-foreground">BEFORE BED RITUAL</h3>
-          <p className="text-xs font-bold text-[#ff4444] uppercase">NON-NEGOTIABLE</p>
+          <p className="text-xs font-bold text-[#ff4444] uppercase">At least 2 hours before bed</p>
         </div>
-        <div className={`text-sm font-semibold ${allCompleted ? 'text-primary' : 'text-[#ff4444]'}`}>
-          {completedCount}/{items.length}
+        <div className="text-right">
+          <div className={`text-sm font-semibold ${allCompleted ? 'text-primary' : 'text-[#ff4444]'}`}>
+            {completedCount}/{items.length}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {totalCalories} cal
+          </div>
         </div>
       </div>
       
@@ -51,8 +59,13 @@ export const BeforeBedRitualCard = ({ completed, onToggle }: BeforeBedRitualCard
               className="mt-0.5"
             />
             <label className="text-sm font-semibold text-foreground cursor-pointer flex-1" onClick={() => onToggle(index)}>
-              {item}
+              {item.name}
             </label>
+            {item.calories > 0 && (
+              <span className="text-xs text-muted-foreground font-medium">
+                {item.calories} cal
+              </span>
+            )}
           </div>
         ))}
       </div>
