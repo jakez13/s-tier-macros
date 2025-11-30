@@ -502,17 +502,30 @@ export const MealPlans = () => {
                 {recipe.name}
               </h4>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-[10px] sm:text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                skipMeal(selectedDay, mealType);
-              }}
-            >
-              Skip
-            </Button>
+            <div className="flex gap-1 flex-shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-xs font-semibold hover:bg-primary/10 hover:border-primary/30"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMealClick(selectedDay, mealType);
+                }}
+              >
+                Change Recipe
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-[10px] sm:text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  skipMeal(selectedDay, mealType);
+                }}
+              >
+                Skip
+              </Button>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -533,7 +546,8 @@ export const MealPlans = () => {
                 updateDailyTracking({ [`${mealType}Completed`]: checked });
               }}
             />
-            <label className="text-sm text-foreground cursor-pointer flex-1" onClick={() => {
+            <label className="text-sm text-foreground cursor-pointer flex-1" onClick={(e) => {
+              e.stopPropagation();
               const current = dailyTracking[`${mealType}Completed` as keyof typeof dailyTracking] as boolean;
               updateDailyTracking({ [`${mealType}Completed`]: !current });
             }}>
@@ -869,6 +883,7 @@ export const MealPlans = () => {
             >
               <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               {editMode ? 'Done' : 'Edit Sections'}
+              {editMode && <Check className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />}
             </Button>
           </div>
         </div>
@@ -942,14 +957,29 @@ export const MealPlans = () => {
                   {visibleSections.morningMeal && (
                     <div className={`relative ${editMode ? 'animate-[wiggle_0.5s_ease-in-out_infinite]' : ''}`}>
                       {editMode && (
-                        <Button
-                          size="icon"
-                          variant="destructive"
-                          className="absolute -top-2 -right-2 z-10 h-7 w-7 rounded-full shadow-lg"
-                          onClick={() => handleRemoveSection('morningMeal')}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+                        <>
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 z-10 h-7 w-7 rounded-full shadow-lg"
+                            onClick={() => handleRemoveSection('morningMeal')}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-10 font-semibold hover:bg-primary/10 hover:border-primary/30"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMealClick(selectedDay, 'breakfast');
+                              toast.info('Select a breakfast recipe from the drawer');
+                            }}
+                          >
+                            <RefreshCw className="w-3 h-3 mr-1.5" />
+                            Change to Breakfast Recipe
+                          </Button>
+                        </>
                       )}
                       <MorningProtocolCard
                         completed={dailyTracking.morningProtocol}
