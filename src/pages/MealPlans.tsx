@@ -490,7 +490,10 @@ export const MealPlans = () => {
     return (
       <Card 
         className={`p-4 sm:p-5 border bg-gradient-to-br ${mealColors[mealType]} hover:border-primary/30 transition-all duration-200 hover:shadow-lg group cursor-pointer`}
-        onClick={() => handleMealClick(selectedDay, mealType)}
+        onClick={() => {
+          const current = dailyTracking[`${mealType}Completed` as keyof typeof dailyTracking] as boolean;
+          updateDailyTracking({ [`${mealType}Completed`]: !current });
+        }}
       >
         <div className="space-y-3 sm:space-y-4">
           <div className="flex items-start justify-between gap-2">
