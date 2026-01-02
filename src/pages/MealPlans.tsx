@@ -51,7 +51,8 @@ export const MealPlans = () => {
     weeklyMealPlan, 
     setWeeklyMealPlan, 
     selectedRecipes, 
-    userProfile, 
+    userProfile,
+    setUserProfile,
     loadDurdenRoutine,
     durdenPlan,
     setDurdenPlan,
@@ -851,34 +852,36 @@ export const MealPlans = () => {
           
           {/* Import buttons based on user's goal */}
           <div className="flex gap-2 flex-wrap">
-            {(userProfile?.goal === 'cut' || userProfile?.goal === 'maintain') && (
-              <Button
-                onClick={() => {
-                  setDurdenPlan('lean');
-                  loadDurdenRoutine();
-                  toast.success("Durden's Lean Recipes Imported!");
-                }}
-                size="default"
-                className="flex-1 sm:flex-none bg-[#ff4444] hover:bg-[#ff4444]/90 text-white font-bold"
-              >
-                <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                Import Durden's Lean Recipes
-              </Button>
-            )}
-            {(userProfile?.goal === 'bulk' || userProfile?.goal === 'maintain') && (
-              <Button
-                onClick={() => {
-                  setDurdenPlan('bulk');
-                  loadDurdenRoutine();
-                  toast.success("Durden's Bulk Recipes Imported!");
-                }}
-                size="default"
-                className="flex-1 sm:flex-none bg-[#ff4444] hover:bg-[#ff4444]/90 text-white font-bold"
-              >
-                <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                Import Durden's Bulk Recipes
-              </Button>
-            )}
+            <Button
+              onClick={() => {
+                setDurdenPlan('lean');
+                if (userProfile) {
+                  setUserProfile({ ...userProfile, goal: 'cut' });
+                }
+                loadDurdenRoutine();
+                toast.success("Durden's Lean Recipes Imported! Plan changed to Cut.");
+              }}
+              size="default"
+              className="flex-1 sm:flex-none bg-[#ff4444] hover:bg-[#ff4444]/90 text-white font-bold"
+            >
+              <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              Import Durden's Lean Recipes
+            </Button>
+            <Button
+              onClick={() => {
+                setDurdenPlan('bulk');
+                if (userProfile) {
+                  setUserProfile({ ...userProfile, goal: 'bulk' });
+                }
+                loadDurdenRoutine();
+                toast.success("Durden's Bulk Recipes Imported! Plan changed to Bulk.");
+              }}
+              size="default"
+              className="flex-1 sm:flex-none bg-[#ff4444] hover:bg-[#ff4444]/90 text-white font-bold"
+            >
+              <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              Import Durden's Bulk Recipes
+            </Button>
             <Button
               onClick={() => setEditMode(!editMode)}
               variant={editMode ? "default" : "outline"}
